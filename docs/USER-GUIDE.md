@@ -1,8 +1,8 @@
 # Quick Controls User Guide
 
-Quick Controls gives Windows 10 and Windows 11 users fast access to system volume and display brightness. It is especially useful when a keyboard has no media keys. You can use global keyboard shortcuts, choose one of four on-screen panel layouts, or keep the app in the system tray.
+Quick Controls gives Windows 10 and Windows 11 users fast access to system volume, display brightness, and a simple live view of computer activity. It is especially useful when a keyboard has no media keys. You can use global keyboard shortcuts, choose one of four on-screen panel layouts, open the Hardware Monitor when needed, or keep the app in the system tray.
 
-> This guide describes the current `main` branch. Features in [Unreleased](../CHANGELOG.md#unreleased), including the redesigned Settings window and new panel modes, may not be present in the latest stable installer yet. Check the release notes for the version you download.
+> This guide describes the current `main` branch. Features in [Unreleased](../CHANGELOG.md#unreleased), including the redesigned Settings window, new panel modes, and Hardware Monitor, may not be present in the latest stable installer yet. Check the release notes for the version you download.
 
 ## Install Quick Controls
 
@@ -25,6 +25,20 @@ The Full panel contains two clear control sections:
 Use the layout button in the title bar to switch panel shape. Use the expand button in a mini layout to return to the Full panel. Use the close button to hide the panel in the system tray; the app keeps running and its keyboard shortcuts still work.
 
 Quick Controls uses a sharp, high-contrast visual style with clear text, compact corners, visible borders, and vivid volume and brightness accents. Buttons and sliders are designed to remain easy to identify at a glance.
+
+## Monitor CPU, GPU, memory, and storage
+
+Open **Hardware Monitor** from Quick Controls when you want to check current computer activity. The window contains separate CPU, GPU, memory, and storage cards. Each card keeps a rolling graph of the latest 60 seconds and receives one new sample every second.
+
+Sampling runs only while the Hardware Monitor window is open and visible. Minimizing it pauses sampling; closing it stops the worker and discards the in-memory graph history. Quick Controls does not build a performance history while it is hidden in the system tray.
+
+Temperature readings are optional:
+
+- **GPU temperature** appears when the installed Windows graphics driver exposes a supported reading.
+- **Storage temperature** appears when the storage device and its Windows driver expose a supported reading.
+- **CPU temperature** can show **Not reported** because standard Windows APIs do not provide a dependable CPU package or die temperature across ordinary Windows computers.
+
+**Not reported** means the device or driver did not supply that value; it does not mean the device is overheating or broken. Available usage and memory graphs continue to update when a temperature is missing. Hardware Monitor runs without administrator access and Quick Controls does not install an additional sensor or kernel driver.
 
 ## Choose a layout for your screen
 
@@ -132,6 +146,7 @@ Laptop panels normally use Windows WMI brightness controls. Compatible external 
 Right-click the Quick Controls icon near the Windows clock to open its menu. The tray menu lets you:
 
 - Open the panel.
+- Open Hardware Monitor.
 - Mute or unmute audio.
 - Switch directly between all four panel layouts.
 - Open Settings or About.

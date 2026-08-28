@@ -17,6 +17,8 @@ $edgePreviewPath = Join-Path $artifactRoot 'QuickControls-Edge-Preview.png'
 $settingsPreviewPath = Join-Path $artifactRoot 'QuickControls-Settings-Preview.png'
 $shortcutsPreviewPath = Join-Path $artifactRoot 'QuickControls-Shortcuts-Preview.png'
 $frenchPreviewPath = Join-Path $artifactRoot 'QuickControls-Settings-French-Preview.png'
+$hardwarePreviewPath = Join-Path $artifactRoot 'QuickControls-Hardware-Monitor-Preview.png'
+$hardwareScaledPreviewPath = Join-Path $artifactRoot 'QuickControls-Hardware-Monitor-150-Preview.png'
 $uninstallerPreviewPath = Join-Path $artifactRoot 'QuickControls-Uninstaller-Preview.png'
 $uninstallerScaledPreviewPath = Join-Path $artifactRoot 'QuickControls-Uninstaller-150-Preview.png'
 
@@ -94,6 +96,31 @@ $choiceDropDownLifecycleMethod = $previewType.GetMethod(
     'ValidateChoiceDropDownLifecycle',
     [System.Reflection.BindingFlags]::Public -bor [System.Reflection.BindingFlags]::Static)
 $choiceDropDownLifecycleMethod.Invoke($null, @()) | Out-Null
+$hardwarePreviewMethod = $previewType.GetMethod(
+    'RenderHardwareMonitor',
+    [System.Reflection.BindingFlags]::Public -bor [System.Reflection.BindingFlags]::Static)
+[object[]]$hardwareRenderArguments = @([string]$hardwarePreviewPath)
+$hardwarePreviewMethod.Invoke($null, $hardwareRenderArguments) | Out-Null
+$hardwareScaledPreviewMethod = $previewType.GetMethod(
+    'RenderHardwareMonitorAtScale',
+    [System.Reflection.BindingFlags]::Public -bor [System.Reflection.BindingFlags]::Static)
+[object[]]$hardwareScaledRenderArguments = @(
+    [string]$hardwareScaledPreviewPath,
+    [string]'en',
+    [single]1.5)
+$hardwareScaledPreviewMethod.Invoke($null, $hardwareScaledRenderArguments) | Out-Null
+$hardwareLanguageLifecycleMethod = $previewType.GetMethod(
+    'ValidateHardwareMonitorLanguageLifecycle',
+    [System.Reflection.BindingFlags]::Public -bor [System.Reflection.BindingFlags]::Static)
+$hardwareLanguageLifecycleMethod.Invoke($null, @()) | Out-Null
+$hardwareWorkingAreaLifecycleMethod = $previewType.GetMethod(
+    'ValidateHardwareMonitorWorkingAreaLifecycle',
+    [System.Reflection.BindingFlags]::Public -bor [System.Reflection.BindingFlags]::Static)
+$hardwareWorkingAreaLifecycleMethod.Invoke($null, @()) | Out-Null
+$hardwareVisibilityLifecycleMethod = $previewType.GetMethod(
+    'ValidateHardwareMonitorVisibilityLifecycle',
+    [System.Reflection.BindingFlags]::Public -bor [System.Reflection.BindingFlags]::Static)
+$hardwareVisibilityLifecycleMethod.Invoke($null, @()) | Out-Null
 
 $installerAssembly = [System.Reflection.Assembly]::LoadFrom($setupPath)
 $installerPreviewType = $installerAssembly.GetType(
@@ -114,6 +141,9 @@ $layoutLanguagePreviewMethod = $previewType.GetMethod(
     'RenderLayoutLanguage',
     [System.Reflection.BindingFlags]::Public -bor [System.Reflection.BindingFlags]::Static)
 $fullLayout = [System.Enum]::Parse($layoutType, 'Full')
+$hardwareLanguagePreviewMethod = $previewType.GetMethod(
+    'RenderHardwareMonitorLanguage',
+    [System.Reflection.BindingFlags]::Public -bor [System.Reflection.BindingFlags]::Static)
 $localizedPreviews = @()
 foreach ($languageCode in @('en', 'vi', 'ja', 'zh-CN', 'fr')) {
     $safeLanguageCode = $languageCode.Replace('-', '_')
@@ -136,6 +166,11 @@ foreach ($languageCode in @('en', 'vi', 'ja', 'zh-CN', 'fr')) {
     [object[]]$panelArguments = @([string]$panelPath, $fullLayout, [string]$languageCode)
     $layoutLanguagePreviewMethod.Invoke($null, $panelArguments) | Out-Null
     $localizedPreviews += [pscustomobject]@{ Path = $panelPath; Width = 440; Height = 456 }
+
+    $hardwareLanguagePath = Join-Path $artifactRoot "QuickControls-Hardware-$safeLanguageCode-Preview.png"
+    [object[]]$hardwareLanguageArguments = @([string]$hardwareLanguagePath, [string]$languageCode)
+    $hardwareLanguagePreviewMethod.Invoke($null, $hardwareLanguageArguments) | Out-Null
+    $localizedPreviews += [pscustomobject]@{ Path = $hardwareLanguagePath; Width = 920; Height = 620 }
 }
 
 $appTextType = $applicationAssembly.GetType('QuickControls.Services.AppText', $true)
@@ -248,6 +283,26 @@ try {
 }
 finally {
     $frenchImage.Dispose()
+}
+
+$hardwareImage = [System.Drawing.Image]::FromFile($hardwarePreviewPath)
+try {
+    if ($hardwareImage.Width -ne 920 -or $hardwareImage.Height -ne 620) {
+        throw "Unexpected hardware monitor preview dimensions: $($hardwareImage.Width)x$($hardwareImage.Height)."
+    }
+}
+finally {
+    $hardwareImage.Dispose()
+}
+
+$hardwareScaledImage = [System.Drawing.Image]::FromFile($hardwareScaledPreviewPath)
+try {
+    if ($hardwareScaledImage.Width -ne 1380 -or $hardwareScaledImage.Height -ne 930) {
+        throw "Unexpected 150% hardware monitor dimensions: $($hardwareScaledImage.Width)x$($hardwareScaledImage.Height)."
+    }
+}
+finally {
+    $hardwareScaledImage.Dispose()
 }
 
 $uninstallerImage = [System.Drawing.Image]::FromFile($uninstallerPreviewPath)

@@ -1,11 +1,11 @@
-# Quick Controls for Windows — Volume & Brightness Hotkeys
+# Quick Controls for Windows — Volume & Brightness Hotkeys and Hardware Monitor
 
 [![Windows 10 and 11](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?logo=windows&logoColor=white)](https://github.com/tanngoc93/QuickControls/releases/latest)
 [![Windows build](https://github.com/tanngoc93/QuickControls/actions/workflows/build-and-release.yml/badge.svg)](https://github.com/tanngoc93/QuickControls/actions/workflows/build-and-release.yml)
 ![C# WinForms](https://img.shields.io/badge/C%23-WinForms-512BD4?logo=dotnet&logoColor=white)
 ![.NET Framework 4.0](https://img.shields.io/badge/.NET%20Framework-4.0-512BD4)
 
-**Quick Controls** is a lightweight Windows 10 and Windows 11 utility that adds customizable global keyboard shortcuts and a sharp, modern control panel for system volume, mute, laptop brightness, and compatible external monitor brightness. It is built for keyboards without media keys and for everyday Windows users who want faster controls without digging through Windows Settings. Its redesigned Settings window keeps setup approachable with a flat dark sidebar, visual panel-layout tiles, keycap-style shortcut capture, and familiar on/off toggles.
+**Quick Controls** is a lightweight Windows 10 and Windows 11 utility that adds customizable global keyboard shortcuts, a sharp modern control panel for volume and display brightness, and an on-demand hardware monitor for CPU, GPU, memory, and storage activity. It is built for keyboards without media keys and for everyday Windows users who want faster controls and a simple view of current PC performance without digging through Windows Settings. Its redesigned Settings window keeps setup approachable with a flat dark sidebar, visual panel-layout tiles, keycap-style shortcut capture, and familiar on/off toggles.
 
 <p align="center">
   <img src="docs/images/quick-controls-windows-volume-brightness-panel.png" alt="Quick Controls floating Windows volume and brightness control panel" width="440">
@@ -23,11 +23,11 @@ The screenshots and feature list below describe the current `main` branch. Check
 
 ## The problem
 
-Many compact, mechanical, and office keyboards do not have dedicated volume or brightness keys. Changing those settings interrupts your work, and external monitors often hide brightness behind physical buttons and nested menus.
+Many compact, mechanical, and office keyboards do not have dedicated volume or brightness keys. Changing those settings interrupts your work, external monitors often hide brightness behind physical buttons and nested menus, and checking basic computer activity normally means opening a separate technical tool.
 
 ## The solution
 
-Quick Controls places six global hotkeys and a clear, high-contrast panel within easy reach. It controls the default Windows audio output, built-in display brightness through Windows WMI, and compatible external monitor brightness through DDC/CI.
+Quick Controls places six global hotkeys, a clear high-contrast control panel, and a focused hardware monitor within easy reach. It controls the default Windows audio output, built-in display brightness through Windows WMI, and compatible external monitor brightness through DDC/CI. The hardware monitor shows a rolling 60-second view of CPU, GPU, memory, and storage activity without requiring administrator access.
 
 Install it once, then use your keyboard, the on-screen panel, or the system tray. There are no configuration files to edit and no commands for an end user to run.
 
@@ -49,6 +49,9 @@ Install it once, then use your keyboard, the on-screen panel, or the system tray
 - Keep the panel above other windows or let it return to a mini layout automatically.
 - Choose a `2%`, `5%`, or `10%` adjustment step.
 - See on-screen volume and brightness feedback after hotkey actions.
+- Open live CPU, GPU, memory, and storage graphs when you want a quick view of computer activity.
+- Follow the latest 60 seconds with one new sample per second; sampling runs only while the Hardware Monitor window is open.
+- See GPU and storage temperatures when supported Windows drivers report them, with a clear **Not reported** state when telemetry is unavailable.
 - Run quietly from the system tray and optionally start with Windows.
 - Install per user without an administrator prompt.
 - Remove the app through a clear, DPI-safe uninstaller without clipped options at common Windows display scaling levels.
@@ -64,6 +67,7 @@ Install it once, then use your keyboard, the on-screen panel, or the system tray
 | Left or right Edge Dock | ![Quick Controls Windows volume and brightness Edge Dock panel](docs/images/quick-controls-edge-dock-panel.png) |
 | Language and panel layout settings | ![Quick Controls language and panel layout settings](docs/images/quick-controls-language-panel-layout-settings.png) |
 | Keyboard shortcut settings | ![Quick Controls keyboard shortcut settings](docs/images/quick-controls-keyboard-shortcuts-settings.png) |
+| Live Windows hardware monitor | ![Quick Controls live CPU, GPU, memory, storage, and temperature graphs](docs/images/quick-controls-hardware-monitor.png) |
 | Windows uninstaller | ![Quick Controls DPI-safe Windows uninstaller with optional saved settings removal](docs/images/quick-controls-uninstaller.png) |
 
 ## Install Quick Controls
@@ -136,6 +140,14 @@ All controls keep keyboard focus states and accessible names. These Settings cha
 
 You can also change the layout immediately from the layout button in the Full panel or from **Panel layout** in the system tray menu. If automatic mini mode is enabled, Full returns to Horizontal Mini after you stop using it; the other layouts return to the layout you selected.
 
+## Monitor Windows hardware in real time
+
+Open **Hardware Monitor** for a simple live view of the computer's CPU, GPU, memory, and storage activity. Each graph keeps the latest 60 seconds and adds one sample every second while the window is visible. Sampling pauses when the window is minimized and stops when it closes, so Quick Controls does not keep collecting performance history in the background.
+
+Temperature support depends on telemetry already exposed by the computer's Windows drivers. A supported GPU or storage device can show its current temperature. When a device or driver does not publish that value, Quick Controls shows **Not reported** and continues drawing the available activity graph.
+
+CPU temperature is intentionally not presented as a guaranteed reading. Standard Windows APIs do not provide a dependable CPU package or die temperature across ordinary Windows 10 and Windows 11 computers, so an unavailable CPU temperature remains **Not reported** instead of showing an estimate. The monitor works as the current user, does not request administrator access, and does not install a kernel driver.
+
 ## External monitor brightness control
 
 Quick Controls uses DDC/CI for compatible external monitors. If external monitor brightness is unavailable:
@@ -150,6 +162,8 @@ Not every monitor, TV, dock, or cable path exposes software brightness controls.
 ## Privacy and permissions
 
 Quick Controls handles settings and device commands locally. The application has no server component, user account, analytics SDK, or automatic update service.
+
+Hardware samples are kept in memory only while the Hardware Monitor window is open. They are not uploaded or saved as performance history.
 
 - App files: `%LOCALAPPDATA%\Programs\QuickControls`
 - Saved settings: `%LOCALAPPDATA%\QuickControls\settings.xml`
@@ -186,9 +200,9 @@ See [Building from source](docs/BUILDING.md) for signing, hardware-write verific
 
 ## Documentation
 
-- [User guide](docs/USER-GUIDE.md) — installation, panel, shortcuts, settings, system tray, updates, and uninstall.
+- [User guide](docs/USER-GUIDE.md) — installation, panel, live hardware graphs, shortcuts, settings, system tray, updates, and uninstall.
 - [Display compatibility](docs/DISPLAY-COMPATIBILITY.md) — laptop WMI brightness and external monitor DDC/CI support.
-- [Troubleshooting](docs/TROUBLESHOOTING.md) — shortcut conflicts, unavailable devices, SmartScreen, and installer errors.
+- [Troubleshooting](docs/TROUBLESHOOTING.md) — shortcut conflicts, unavailable sensors and devices, SmartScreen, and installer errors.
 - [Building from source](docs/BUILDING.md) — build, test, hardware verification, and code signing.
 - [Architecture](docs/ARCHITECTURE.md) — Windows APIs, runtime components, local settings, and installer design.
 - [Localization](docs/LOCALIZATION.md) — supported languages, runtime text catalogs, translation rules, and localization testing.
@@ -217,6 +231,10 @@ Yes, when the monitor and connection expose DDC/CI brightness control. Enable DD
 ### Can I choose which monitor to control?
 
 Yes. When multiple compatible displays are detected, choose one from the Brightness card. Quick Controls remembers the selected display.
+
+### Does Quick Controls show CPU and GPU temperature?
+
+Quick Controls shows GPU and storage temperatures when their Windows drivers expose usable telemetry. Standard Windows APIs do not provide a dependable CPU package or die temperature across supported computers, so CPU temperature can show **Not reported**. Missing temperature telemetry does not stop the CPU, GPU, memory, or storage activity graphs, and administrator access is not required.
 
 ### Which interface languages are available?
 

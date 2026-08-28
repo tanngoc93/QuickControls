@@ -19,6 +19,7 @@ namespace QuickControls
         private readonly TrayService _trayService;
         private readonly PanelForm _panel;
         private readonly OsdForm _osd;
+        private HardwareMonitorForm _hardwareMonitor;
         private readonly System.Windows.Forms.Timer _pollTimer;
         private readonly System.Windows.Forms.Timer _brightnessDebounceTimer;
         private readonly System.Windows.Forms.Timer _placementSaveTimer;
@@ -157,6 +158,7 @@ namespace QuickControls
             _panel.DisplaySelectionRequested += PanelDisplaySelectionRequested;
             _panel.BrightnessRetryRequested += delegate { RefreshDisplayDevices(); };
             _panel.SettingsRequested += delegate { ShowSettings(); };
+            _panel.HardwareMonitorRequested += delegate { ShowHardwareMonitor(); };
             _panel.OpenWindowsDisplaySettingsRequested += delegate { OpenWindowsDisplaySettings(); };
             _panel.PanelPositionChanged += delegate { QueuePanelPlacementSave(); };
             _panel.CompactStateChanged += delegate { QueuePanelPlacementSave(); };
@@ -165,6 +167,7 @@ namespace QuickControls
             _trayService.OpenRequested += delegate { _panel.TogglePanel(); };
             _trayService.MuteRequested += delegate { ToggleMute(false); };
             _trayService.SettingsRequested += delegate { ShowSettings(); };
+            _trayService.HardwareMonitorRequested += delegate { ShowHardwareMonitor(); };
             _trayService.AboutRequested += delegate { ShowAbout(); };
             _trayService.ExitRequested += delegate
             {
@@ -626,6 +629,7 @@ namespace QuickControls
             if (resetPanelPosition) _panel.ResetPosition();
             _osd.ApplyLanguage();
             _trayService.ApplyLanguage();
+            if (_hardwareMonitor != null && !_hardwareMonitor.IsDisposed) _hardwareMonitor.ApplyLanguage();
             _trayService.SetStartupChecked(_settings.StartWithWindows);
             RefreshAudio();
             if (languageChanged || displaySelectionChanged) RefreshDisplayDevices();
@@ -692,6 +696,21 @@ namespace QuickControls
             }
         }
 
+        private void ShowHardwareMonitor()
+        {
+            if (_hardwareMonitor == null || _hardwareMonitor.IsDisposed)
+            {
+                HardwareMonitorForm form = new HardwareMonitorForm();
+                _hardwareMonitor = form;
+                form.FormClosed += delegate
+                {
+                    if (ReferenceEquals(_hardwareMonitor, form)) _hardwareMonitor = null;
+                };
+            }
+
+            _hardwareMonitor.ShowMonitor();
+        }
+
         private static void OpenWindowsDisplaySettings()
         {
             try { Process.Start("ms-settings:display"); }
@@ -725,6 +744,8 @@ namespace QuickControls
             ShowOnUiThread(delegate
             {
                 _panel.HandleDisplayConfigurationChanged();
+                if (_hardwareMonitor != null && !_hardwareMonitor.IsDisposed)
+                    _hardwareMonitor.HandleDisplayConfigurationChanged();
                 RefreshDisplayDevices();
             });
         }
@@ -764,6 +785,11 @@ namespace QuickControls
             _placementSaveTimer.Stop();
             SavePanelPlacement();
             _panel.PrepareForExit();
+            if (_hardwareMonitor != null && !_hardwareMonitor.IsDisposed)
+            {
+                _hardwareMonitor.PrepareForExit();
+                _hardwareMonitor.Close();
+            }
             _trayService.Dispose();
             _hotkeyManager.Dispose();
             _brightnessService.Dispose();

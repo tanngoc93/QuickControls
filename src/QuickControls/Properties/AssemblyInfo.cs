@@ -2,7 +2,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("Quick Controls")]
-[assembly: AssemblyDescription("Quick volume and brightness controls for Windows")]
+[assembly: AssemblyDescription("Quick volume, brightness, and hardware monitoring controls for Windows")]
 [assembly: AssemblyCompany("QuickControls")]
 [assembly: AssemblyProduct("Quick Controls")]
 [assembly: AssemblyCopyright("Copyright © 2026")]

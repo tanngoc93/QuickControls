@@ -15,6 +15,7 @@ namespace QuickControls.Services
         private readonly ToolStripMenuItem _openItem;
         private readonly ToolStripMenuItem _muteItem;
         private readonly ToolStripMenuItem _layoutRoot;
+        private readonly ToolStripMenuItem _hardwareItem;
         private readonly ToolStripMenuItem _settingsItem;
         private readonly ToolStripMenuItem _startupItem;
         private readonly ToolStripMenuItem _aboutItem;
@@ -47,6 +48,8 @@ namespace QuickControls.Services
             AddLayoutItem(PanelLayoutMode.EdgeDock);
             _menu.Items.Add(_layoutRoot);
 
+            _hardwareItem = CreateItem(delegate { Raise(HardwareMonitorRequested); }, false);
+            _menu.Items.Add(_hardwareItem);
             _settingsItem = CreateItem(delegate { Raise(SettingsRequested); }, false);
             _menu.Items.Add(_settingsItem);
             _startupItem = CreateItem(ToggleStartup, false);
@@ -66,6 +69,7 @@ namespace QuickControls.Services
         public event EventHandler OpenRequested;
         public event EventHandler MuteRequested;
         public event EventHandler SettingsRequested;
+        public event EventHandler HardwareMonitorRequested;
         public event EventHandler AboutRequested;
         public event EventHandler ExitRequested;
         public event EventHandler<StartupToggleEventArgs> StartupToggleRequested;
@@ -88,6 +92,7 @@ namespace QuickControls.Services
             _layoutItems[PanelLayoutMode.HorizontalMini].Text = AppText.Get("Layout.HorizontalMini");
             _layoutItems[PanelLayoutMode.VerticalMini].Text = AppText.Get("Layout.VerticalMini");
             _layoutItems[PanelLayoutMode.EdgeDock].Text = AppText.Get("Layout.EdgeDock");
+            _hardwareItem.Text = AppText.Get("Tray.HardwareMonitor");
             _settingsItem.Text = AppText.Get("Tray.Settings");
             _startupItem.Text = AppText.Get("Tray.StartWithWindows");
             _aboutItem.Text = AppText.Get("Tray.About");

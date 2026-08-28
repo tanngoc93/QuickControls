@@ -6,6 +6,9 @@ All notable user-facing changes to Quick Controls are documented here.
 
 ### Added
 
+- An on-demand Hardware Monitor with rolling 60-second CPU, GPU, memory, and storage activity graphs.
+- Optional GPU and storage temperatures through supported Windows drivers, with an honest **Not reported** state when telemetry is unavailable.
+- Hardware Monitor access from the Full panel and system tray in all five interface languages.
 - Runtime interface languages: English, Vietnamese, Japanese, Simplified Chinese, and French.
 - Four panel layouts for different workflows: Full, Horizontal Mini, Vertical Mini, and left/right Edge Dock.
 - Direct volume, mute, and brightness actions in both mini layouts.

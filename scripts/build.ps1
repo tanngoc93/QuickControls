@@ -22,6 +22,7 @@ $verticalPreviewOutput = Join-Path $artifactRoot 'QuickControls-Vertical-Preview
 $edgePreviewOutput = Join-Path $artifactRoot 'QuickControls-Edge-Preview.png'
 $settingsPreviewOutput = Join-Path $artifactRoot 'QuickControls-Settings-Preview.png'
 $shortcutsPreviewOutput = Join-Path $artifactRoot 'QuickControls-Shortcuts-Preview.png'
+$hardwarePreviewOutput = Join-Path $artifactRoot 'QuickControls-Hardware-Monitor-Preview.png'
 $uninstallerPreviewOutput = Join-Path $artifactRoot 'QuickControls-Uninstaller-Preview.png'
 $uninstallerScaledPreviewOutput = Join-Path $artifactRoot 'QuickControls-Uninstaller-150-Preview.png'
 
@@ -247,6 +248,11 @@ if (-not $SkipPreview) {
         [System.Reflection.BindingFlags]::Public -bor [System.Reflection.BindingFlags]::Static)
     [object[]]$shortcutsRenderArguments = @([string]$shortcutsPreviewOutput, [string]'Shortcuts', [string]'en')
     $settingsPagePreviewMethod.Invoke($null, $shortcutsRenderArguments) | Out-Null
+    $hardwarePreviewMethod = $previewType.GetMethod(
+        'RenderHardwareMonitor',
+        [System.Reflection.BindingFlags]::Public -bor [System.Reflection.BindingFlags]::Static)
+    [object[]]$hardwareRenderArguments = @([string]$hardwarePreviewOutput)
+    $hardwarePreviewMethod.Invoke($null, $hardwareRenderArguments) | Out-Null
 
     Write-Host 'Rendering uninstaller UI previews...'
     $installerAssembly = [System.Reflection.Assembly]::LoadFrom($setupOutput)
@@ -276,6 +282,7 @@ if (-not $SkipPreview) {
     Write-Host "Edge UI:     $edgePreviewOutput"
     Write-Host "Settings UI: $settingsPreviewOutput"
     Write-Host "Shortcuts UI:$shortcutsPreviewOutput"
+    Write-Host "Hardware UI: $hardwarePreviewOutput"
     Write-Host "Uninstall UI: $uninstallerPreviewOutput"
     Write-Host "Uninstall 150%: $uninstallerScaledPreviewOutput"
 }

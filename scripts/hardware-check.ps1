@@ -64,6 +64,28 @@ finally {
     $brightnessType.GetMethod('Dispose').Invoke($brightnessService, $null) | Out-Null
 }
 
+$hardwareType = $assembly.GetType('QuickControls.Services.HardwareMonitorService', $true)
+$hardwareService = [System.Activator]::CreateInstance($hardwareType)
+try {
+    $hardwareType.GetMethod('ReadSnapshot').Invoke($hardwareService, $null) | Out-Null
+    Start-Sleep -Milliseconds 1100
+    $snapshot = $hardwareType.GetMethod('ReadSnapshot').Invoke($hardwareService, $null)
+    foreach ($metricName in @('Cpu', 'Gpu', 'Memory', 'Storage')) {
+        $metric = $snapshot.$metricName
+        [PSCustomObject]@{
+            Component = "Hardware monitor - $metricName"
+            Device = $metric.Name
+            Present = $metric.Present
+            UsagePercent = $metric.UsagePercent
+            TemperatureCelsius = $metric.TemperatureCelsius
+            TemperatureStatus = if ($null -ne $metric.TemperatureCelsius) { 'Reported' } else { 'Not reported' }
+        } | Format-List
+    }
+}
+finally {
+    $hardwareType.GetMethod('Dispose').Invoke($hardwareService, $null) | Out-Null
+}
+
 $settingsType = $assembly.GetType('QuickControls.Models.AppSettings', $true)
 $settings = $settingsType.GetMethod('CreateDefaults').Invoke($null, $null)
 $hotkeyType = $assembly.GetType('QuickControls.Services.HotkeyManager', $true)

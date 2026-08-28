@@ -9,9 +9,10 @@ Program
   -> AppController
      -> AudioService
      -> BrightnessService
+     -> HardwareMonitorService
      -> HotkeyManager
      -> SettingsStore / StartupService / AppText
-     -> PanelForm / SettingsForm / OsdForm / TrayService
+     -> PanelForm / Hardware Monitor window / SettingsForm / OsdForm / TrayService
 ```
 
 `Program` enforces a single running instance and uses named Windows events to show or close the existing instance. `AppController` owns application state and coordinates the services and user interface.
@@ -28,6 +29,18 @@ Program
 - Physical monitors exposed by the Windows monitor configuration API for DDC/CI-capable external displays.
 
 Each display implements the same `BrightnessDevice` abstraction so the UI can list, read, and update detected displays consistently.
+
+## Hardware monitoring
+
+The hardware monitoring path produces nullable `HardwareSnapshot` values for CPU, GPU, memory, and storage. It uses `GetSystemTimes` for processor load, `GlobalMemoryStatusEx` for physical-memory load and capacity, and read-only Windows performance counters for GPU-engine and physical-disk activity. GPU rows are grouped per adapter and engine, then the busiest engine is shown instead of incorrectly adding unrelated engines together.
+
+Optional GPU temperature comes from `D3DKMTQueryAdapterInfo` adapter performance data on supported WDDM drivers. Optional drive temperature comes from `IOCTL_STORAGE_QUERY_PROPERTY` with `StorageDeviceTemperatureProperty`. Both paths are driver-dependent, validate returned values, and degrade to a nullable reading. No ACPI thermal-zone value is mislabeled as CPU temperature.
+
+Standard Windows APIs do not expose a dependable CPU package or die temperature across the supported range of Windows 10 and Windows 11 computers. The application therefore treats CPU temperature as unavailable instead of estimating it. Any missing metric remains nullable through the service and UI layers and is rendered as **Not reported**; one missing value does not suppress the other graphs.
+
+The Hardware Monitor window owns the sampling lifetime. It starts a background worker when the window opens, requests one snapshot per second while visible, and stores at most the latest 60 seconds in an in-memory rolling buffer. Minimizing the window pauses the timer. A user close hides the reusable window, stops the timer, invalidates any active sample, and clears its graph history. The idle service is retained for the next open and disposed when the application exits. No monitoring loop remains active merely because Quick Controls is running in the system tray, and no sample history is written to settings or another file.
+
+Monitoring is read-only and runs without elevation. Quick Controls does not install a service or kernel sensor driver. This keeps the normal per-user installation model intact, with the explicit tradeoff that temperature availability depends on the telemetry already provided by Windows and the installed device drivers.
 
 ## Global keyboard shortcuts
 
@@ -73,7 +86,7 @@ Catalog invariants, format placeholders, font choices, and the workflow for addi
 
 `SettingsStore` serializes settings to `%LOCALAPPDATA%\QuickControls\settings.xml` with a temporary-file replacement flow. Stored preferences include the language, preferred panel layout, left/right dock choice, panel position, keyboard shortcuts, step size, startup behavior, and display selection. The settings version supports migration from the earlier expanded/compact preference. `StartupService` manages a per-user entry under `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`.
 
-Settings and hardware commands are handled locally. The application source contains no network client or telemetry integration.
+Settings, hardware commands, and temporary hardware-monitor samples are handled locally. The application source contains no network client or telemetry integration. Monitor samples stay in memory only for the lifetime of the open Hardware Monitor window.
 
 ## Installer
 

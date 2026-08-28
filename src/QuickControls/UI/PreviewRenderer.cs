@@ -68,6 +68,234 @@ namespace QuickControls.UI
             RenderSettingsPage(outputPath, "Interface", "en");
         }
 
+        public static void RenderHardwareMonitor(string outputPath)
+        {
+            RenderHardwareMonitorLanguage(outputPath, "en");
+        }
+
+        public static void RenderHardwareMonitorLanguage(string outputPath, string languageCode)
+        {
+            RunOnSta(delegate { RenderHardwareMonitorCore(outputPath, languageCode, 1F); });
+        }
+
+        public static void RenderHardwareMonitorAtScale(
+            string outputPath,
+            string languageCode,
+            float scale)
+        {
+            RunOnSta(delegate { RenderHardwareMonitorCore(outputPath, languageCode, scale); });
+        }
+
+        private static void RenderHardwareMonitorCore(string outputPath, string languageCode, float scale)
+        {
+            EnsureVisualStyles();
+            AppText.SetLanguage(languageCode);
+            string directory = Path.GetDirectoryName(outputPath);
+            if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
+            using (PreviewHardwareMonitorService service = new PreviewHardwareMonitorService())
+            using (HardwareMonitorForm form = new HardwareMonitorForm(service, false, false))
+            {
+                for (int index = 0; index < 60; index++)
+                    form.ApplySnapshot(CreatePreviewHardwareSnapshot(index, DateTime.Now));
+                form.ApplyPreviewScale(scale);
+                CaptureForm(form, outputPath);
+            }
+            Application.DoEvents();
+        }
+
+        public static void ValidateHardwareMonitorLanguageLifecycle()
+        {
+            RunOnSta(ValidateHardwareMonitorLanguageLifecycleCore);
+        }
+
+        public static void ValidateHardwareMonitorWorkingAreaLifecycle()
+        {
+            RunOnSta(ValidateHardwareMonitorWorkingAreaLifecycleCore);
+        }
+
+        public static void ValidateHardwareMonitorVisibilityLifecycle()
+        {
+            RunOnSta(ValidateHardwareMonitorVisibilityLifecycleCore);
+        }
+
+        private static void ValidateHardwareMonitorVisibilityLifecycleCore()
+        {
+            EnsureVisualStyles();
+            AppText.SetLanguage("en");
+            using (PreviewHardwareMonitorService service = new PreviewHardwareMonitorService())
+            using (HardwareMonitorForm form = new HardwareMonitorForm(service, false, true))
+            {
+                form.Opacity = 0.01D;
+                form.ShowInTaskbar = false;
+                form.ShowMonitor();
+                Application.DoEvents();
+                form.Close();
+                Application.DoEvents();
+                if (form.Visible || form.IsDisposed)
+                    throw new InvalidOperationException(
+                        "Hardware Monitor did not hide and remain reusable after a user close.");
+
+                form.ShowMonitor();
+                Application.DoEvents();
+                if (!form.Visible || form.IsDisposed)
+                    throw new InvalidOperationException("Hardware Monitor did not reopen after being hidden.");
+                form.PrepareForExit();
+                form.Close();
+                Application.DoEvents();
+                if (!form.IsDisposed)
+                    throw new InvalidOperationException("Hardware Monitor did not close during application exit.");
+            }
+            Application.DoEvents();
+        }
+
+        private static void ValidateHardwareMonitorWorkingAreaLifecycleCore()
+        {
+            EnsureVisualStyles();
+            AppText.SetLanguage("en");
+            MethodInfo fitMethod = typeof(HardwareMonitorForm).GetMethod(
+                "FitToWorkingArea", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (fitMethod == null)
+                throw new InvalidOperationException("Hardware Monitor working-area test hook is unavailable.");
+
+            using (PreviewHardwareMonitorService service = new PreviewHardwareMonitorService())
+            using (HardwareMonitorForm form = new HardwareMonitorForm(service, false, false))
+            {
+                form.Opacity = 0.01D;
+                form.ShowInTaskbar = false;
+                form.Show();
+                Application.DoEvents();
+
+                Rectangle physicalArea = Screen.FromControl(form).WorkingArea;
+                Rectangle largeArea = new Rectangle(
+                    physicalArea.Left,
+                    physicalArea.Top,
+                    Math.Max(1920, physicalArea.Width),
+                    Math.Max(1080, physicalArea.Height));
+                fitMethod.Invoke(form, new object[] { largeArea, false });
+                AssertFormInsideArea(form, largeArea);
+                Size firstLargeSize = form.Size;
+
+                Rectangle smallArea = new Rectangle(physicalArea.Left, physicalArea.Top, 760, 540);
+                fitMethod.Invoke(form, new object[] { smallArea, false });
+                AssertFormInsideArea(form, smallArea);
+                Size firstSmallSize = form.Size;
+
+                fitMethod.Invoke(form, new object[] { largeArea, false });
+                AssertFormInsideArea(form, largeArea);
+                if (Math.Abs(form.Width - firstLargeSize.Width) > 2 ||
+                    Math.Abs(form.Height - firstLargeSize.Height) > 2)
+                    throw new InvalidOperationException(
+                        "Hardware Monitor did not restore its display-normalized size.");
+
+                fitMethod.Invoke(form, new object[] { smallArea, false });
+                AssertFormInsideArea(form, smallArea);
+                if (Math.Abs(form.Width - firstSmallSize.Width) > 2 ||
+                    Math.Abs(form.Height - firstSmallSize.Height) > 2)
+                    throw new InvalidOperationException(
+                        "Hardware Monitor accumulated scaling across display changes.");
+            }
+            Application.DoEvents();
+        }
+
+        private static void AssertFormInsideArea(Form form, Rectangle area)
+        {
+            if (form.Width > area.Width || form.Height > area.Height ||
+                form.Left < area.Left || form.Top < area.Top ||
+                form.Right > area.Right || form.Bottom > area.Bottom)
+                throw new InvalidOperationException("Hardware Monitor is outside the working area.");
+        }
+
+        private static void ValidateHardwareMonitorLanguageLifecycleCore()
+        {
+            EnsureVisualStyles();
+            AppText.SetLanguage("en");
+            FieldInfo titleField = typeof(HardwareMonitorForm).GetField(
+                "_titleLabel", BindingFlags.Instance | BindingFlags.NonPublic);
+            FieldInfo statusField = typeof(HardwareMonitorForm).GetField(
+                "_statusLabel", BindingFlags.Instance | BindingFlags.NonPublic);
+            FieldInfo memoryField = typeof(HardwareMonitorForm).GetField(
+                "_memoryCard", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (titleField == null || statusField == null || memoryField == null)
+                throw new InvalidOperationException("Hardware Monitor language test hooks are unavailable.");
+
+            DateTime sampledAt = new DateTime(2026, 8, 28, 22, 10, 28);
+            using (PreviewHardwareMonitorService service = new PreviewHardwareMonitorService())
+            using (HardwareMonitorForm form = new HardwareMonitorForm(service, false, false))
+            {
+                form.ApplySnapshot(CreatePreviewHardwareSnapshot(18, sampledAt));
+                form.Opacity = 0.01D;
+                form.ShowInTaskbar = false;
+                form.Show();
+                Application.DoEvents();
+                string[] languages = new string[] { "en", "vi", "ja", "zh-CN", "fr", "en" };
+                for (int index = 0; index < languages.Length; index++)
+                {
+                    AppText.SetLanguage(languages[index]);
+                    form.ApplyLanguage();
+                    Label title = titleField.GetValue(form) as Label;
+                    Label status = statusField.GetValue(form) as Label;
+                    Control memory = memoryField.GetValue(form) as Control;
+                    if (title == null || status == null || memory == null)
+                        throw new InvalidOperationException("Hardware Monitor language controls are unavailable.");
+                    if (!string.Equals(title.Text, AppText.Get("Hardware.Title"), StringComparison.Ordinal))
+                        throw new InvalidOperationException("Hardware Monitor title did not change language.");
+                    if (!string.Equals(title.Font.FontFamily.Name, AppText.GetFontFamilyName(true),
+                        StringComparison.OrdinalIgnoreCase))
+                        throw new InvalidOperationException("Hardware Monitor title did not change language font.");
+                    string expectedTime = sampledAt.ToString("T", AppText.CurrentCulture);
+                    if (status.Text.IndexOf(expectedTime, StringComparison.Ordinal) < 0)
+                        throw new InvalidOperationException("Hardware Monitor time did not use the selected culture.");
+                    if (memory.AccessibleDescription == null ||
+                        memory.AccessibleDescription.IndexOf(
+                            AppText.Get("Hardware.Temperature"), StringComparison.Ordinal) < 0)
+                        throw new InvalidOperationException(
+                            "Hardware Monitor accessibility text did not change language.");
+                    AssertHardwareMonitorPaintsWithoutErrorGlyph(form);
+                }
+            }
+            Application.DoEvents();
+        }
+
+        private static void AssertHardwareMonitorPaintsWithoutErrorGlyph(Form form)
+        {
+            form.Refresh();
+            Application.DoEvents();
+            using (Bitmap bitmap = new Bitmap(form.Width, form.Height, PixelFormat.Format32bppArgb))
+            {
+                form.DrawToBitmap(bitmap, new Rectangle(0, 0, bitmap.Width, bitmap.Height));
+                int redPixels = 0;
+                for (int y = 0; y < bitmap.Height; y += 4)
+                {
+                    for (int x = 0; x < bitmap.Width; x += 4)
+                    {
+                        Color pixel = bitmap.GetPixel(x, y);
+                        if (pixel.R > 245 && pixel.G < 10 && pixel.B < 10) redPixels++;
+                    }
+                }
+                if (redPixels > 20)
+                    throw new InvalidOperationException(
+                        "Hardware Monitor rendered a Windows Forms paint-error glyph after a language change.");
+            }
+        }
+
+        private static HardwareSnapshot CreatePreviewHardwareSnapshot(int index, DateTime sampledAt)
+        {
+            double cpu = 34D + Math.Sin(index / 4D) * 18D + (index % 9 == 0 ? 12D : 0D);
+            double gpu = 48D + Math.Sin(index / 5.5D) * 25D;
+            double memory = 61D + Math.Sin(index / 12D) * 3D;
+            double storage = 18D + Math.Sin(index / 2.8D) * 14D + (index % 13 == 0 ? 20D : 0D);
+            return new HardwareSnapshot(
+                sampledAt,
+                new HardwareMetricReading("AMD Ryzen 7 7840U", cpu, null, null, null, true),
+                new HardwareMetricReading("AMD Radeon 780M Graphics", gpu,
+                    62D + Math.Sin(index / 8D) * 3D, null, null, true),
+                new HardwareMetricReading("32 GB DDR5", memory, null,
+                    20L * 1024L * 1024L * 1024L, 32L * 1024L * 1024L * 1024L, true),
+                new HardwareMetricReading("NVMe solid-state drive", storage, 42D, null, null, true),
+                "Windows",
+                false);
+        }
+
         public static void RenderSettingsPage(string outputPath, string pageName, string languageCode)
         {
             RunOnSta(delegate { RenderSettingsPageCore(outputPath, pageName, languageCode); });
@@ -232,6 +460,12 @@ namespace QuickControls.UI
             public override bool TryGetPercent(out int percent) { percent = 58; return true; }
             public override bool SetPercent(int percent) { return true; }
             public override void Dispose() { }
+        }
+
+        private sealed class PreviewHardwareMonitorService : IHardwareMonitorService
+        {
+            public HardwareSnapshot ReadSnapshot() { return HardwareSnapshot.Empty(); }
+            public void Dispose() { }
         }
 
         private sealed class NonActivatingTestForm : Form

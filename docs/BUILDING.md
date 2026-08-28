@@ -23,7 +23,7 @@ The build creates these generated files under `artifacts`:
 - `QuickControls-Setup.exe`, the one-click per-user installer.
 - `QuickControls-Portable.zip`.
 - The application icon.
-- Full-panel, Horizontal Mini, Vertical Mini, Edge Dock, redesigned Settings, and uninstaller UI previews.
+- Full-panel, Horizontal Mini, Vertical Mini, Edge Dock, redesigned Settings, Hardware Monitor, and uninstaller UI previews.
 
 The preview files include:
 
@@ -33,6 +33,7 @@ The preview files include:
 - `QuickControls-Edge-Preview.png` — Edge Dock.
 - `QuickControls-Settings-Preview.png` — Interface page with the direct `2 x 2` layout tiles.
 - `QuickControls-Shortcuts-Preview.png` — Keyboard shortcuts page with keycap fields.
+- `QuickControls-Hardware-Monitor-Preview.png` — CPU, GPU, memory, storage, and optional temperature graphs at 100% scaling.
 - `QuickControls-Uninstaller-Preview.png` — ready-state uninstaller dialog at 100% scaling.
 - `QuickControls-Uninstaller-150-Preview.png` — simulated 150% content-and-font scaling regression preview.
 
@@ -48,7 +49,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build.ps1 -SkipPreview
 powershell -ExecutionPolicy Bypass -File .\scripts\test.ps1
 ```
 
-The check validates required artifact sizes, loads the application assembly, renders all four panel layouts and the redesigned Settings pages, verifies expected image dimensions, validates the five-language text catalog, checks the installer executable header, and reports Authenticode signature status. It also renders localized Interface, Keyboard shortcuts, General, and Full-panel previews for English, Vietnamese, Japanese, Simplified Chinese, and French to catch clipping and missing-font regressions. A real `ModernChoiceBox` lifecycle check opens a test instance of the selector used by language, dock-edge, and adjustment settings; chooses an item; verifies the menu closes without being disposed mid-click; reopens the same menu; and confirms owner disposal. The tray menu is reapplied in every supported language before disposal. Uninstaller checks exercise ready, working, error, and completed states and verify that every visible control stays inside its parent with simulated 100%, 125%, 150%, 175%, or 200% content-and-font scaling. Preview and lifecycle forms cannot activate uninstall actions or modify hardware levels. Native title-bar and checkbox chrome still require a final visual check on a real high-DPI Windows desktop.
+The check validates required artifact sizes, loads the application assembly, renders all four panel layouts and the redesigned Settings pages, verifies expected image dimensions, validates the five-language text catalog, checks the installer executable header, and reports Authenticode signature status. It also renders localized Interface, Keyboard shortcuts, General, Full-panel, and Hardware Monitor previews for English, Vietnamese, Japanese, Simplified Chinese, and French to catch clipping and missing-font regressions. Hardware Monitor receives an additional simulated 150% preview, a runtime-language lifecycle check reuses and repaints one window while verifying translated text, culture-specific time formatting, font selection, accessibility text, and the absence of paint-error glyphs, and a working-area lifecycle check applies small and large synthetic work areas without moving onto another physical display to catch off-screen placement or cumulative scaling. A visibility lifecycle check exercises user close, hidden reuse, reopen, and final application-exit disposal. A real `ModernChoiceBox` lifecycle check opens a test instance of the selector used by language, dock-edge, and adjustment settings; chooses an item; verifies the menu closes without being disposed mid-click; reopens the same menu; and confirms owner disposal. The tray menu is reapplied in every supported language before disposal. Uninstaller checks exercise ready, working, error, and completed states and verify that every visible control stays inside its parent with simulated 100%, 125%, 150%, 175%, or 200% content-and-font scaling. Preview and lifecycle forms cannot activate uninstall actions or modify hardware levels. Native title-bar and checkbox chrome still require a final visual check on a real high-DPI Windows desktop.
 
 Use `-RequireSigned` for a release build that must have valid signatures:
 
@@ -64,7 +65,7 @@ Review the generated localized previews as well as the automated result. A catal
 
 ## Check hardware integration
 
-The hardware check reads the current audio and brightness state without changing it:
+The hardware check reads the current audio and brightness state without changing it. It does not require temperature sensors to be available:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\hardware-check.ps1
@@ -75,6 +76,22 @@ Add `-VerifyWrites` to write the current values back unchanged and verify the wr
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\hardware-check.ps1 -VerifyWrites
 ```
+
+## Validate Hardware Monitor changes
+
+Hardware Monitor uses live values from the computer running the build, so temperature availability is not a portable pass/fail condition. After building, open Hardware Monitor and verify these behaviors manually:
+
+- CPU, GPU, memory, and storage cards remain usable when one or more readings are unavailable.
+- A new point is added about once per second and each graph retains no more than the latest 60 seconds.
+- Closing the Hardware Monitor window stops sampling; reopening it starts a fresh in-memory history.
+- Missing CPU, GPU, or storage temperature is displayed as **Not reported**, not as `0 degrees` or an invented estimate.
+- CPU temperature is not required because standard Windows APIs do not provide a dependable cross-device reading.
+- Supported GPU and storage temperatures may appear when the installed Windows drivers expose them.
+- The feature works from a normal user account without an administrator prompt.
+
+Test both a computer that reports optional temperature telemetry and a computer or virtual machine that does not when those environments are available. Do not make automated tests depend on a particular sensor name or temperature value.
+
+The public README screenshot is maintained at `docs/images/quick-controls-hardware-monitor.png`. When regenerating it, use representative activity values, keep any unavailable temperature labeled **Not reported**, and confirm the Markdown image reference before committing the image.
 
 ## Sign release binaries
 

@@ -70,6 +70,7 @@ namespace QuickControls.UI
         private GlyphButton _verticalCollapse;
         private GlyphButton _verticalExpand;
         private GlyphButton _verticalHide;
+        private GlyphButton _fullHardwareButton;
         private GlyphButton _fullLayoutButton;
         private GlyphButton _fullCollapseButton;
         private GlyphButton _fullHideButton;
@@ -78,6 +79,7 @@ namespace QuickControls.UI
         private ComboBox _displayCombo;
         private ModernProgress _edgeVolumeProgress;
         private ModernProgress _edgeBrightnessProgress;
+        private ToolStripMenuItem _menuHardware;
         private ToolStripMenuItem _menuSettings;
         private ToolStripMenuItem _menuHide;
 
@@ -148,6 +150,7 @@ namespace QuickControls.UI
         public event EventHandler<IntValueEventArgs> DisplaySelectionRequested;
         public event EventHandler BrightnessRetryRequested;
         public event EventHandler SettingsRequested;
+        public event EventHandler HardwareMonitorRequested;
         public event EventHandler OpenWindowsDisplaySettingsRequested;
         public event EventHandler PanelPositionChanged;
         public event EventHandler CompactStateChanged;
@@ -251,6 +254,7 @@ namespace QuickControls.UI
             _views[PanelLayoutMode.EdgeDock].AccessibleName = AppText.Get("Panel.EdgeTab.Accessible");
             _views[PanelLayoutMode.EdgeDock].AccessibleDescription = AppText.Get("Panel.EdgeTab.Description");
 
+            SetAccessibility(_fullHardwareButton, "Hardware.Open.Accessible");
             SetAccessibility(_fullLayoutButton, "Settings.PanelLayout");
             SetAccessibility(_fullCollapseButton, "Panel.Collapse.Accessible");
             SetAccessibility(_fullHideButton, "Panel.HideToTray.Accessible");
@@ -280,6 +284,7 @@ namespace QuickControls.UI
             _layoutItems[PanelLayoutMode.HorizontalMini].Text = AppText.Get("Layout.HorizontalMini");
             _layoutItems[PanelLayoutMode.VerticalMini].Text = AppText.Get("Layout.VerticalMini");
             _layoutItems[PanelLayoutMode.EdgeDock].Text = AppText.Get("Layout.EdgeDock");
+            _menuHardware.Text = AppText.Get("Hardware.Title");
             _menuSettings.Text = AppText.Get("Common.Settings");
             _menuHide.Text = AppText.Get("Panel.HideToTray.Accessible");
             Font oldLayoutMenuFont = _layoutMenu.Font;
@@ -583,9 +588,12 @@ namespace QuickControls.UI
             logo.MouseDown += DragWindow;
             header.Controls.Add(logo);
             _titleLabel = CreateLabel(string.Empty, 18F, FontStyle.Bold, AppColors.Text);
-            _titleLabel.SetBounds(62, 12, 250, 38);
+            _titleLabel.SetBounds(62, 12, 214, 38);
             _titleLabel.MouseDown += DragWindow;
             header.Controls.Add(_titleLabel);
+            _fullHardwareButton = CreateGlyphButton(QuickGlyph.Activity, 290, 16, 30, 30);
+            _fullHardwareButton.Click += delegate { Raise(HardwareMonitorRequested); };
+            header.Controls.Add(_fullHardwareButton);
             _fullLayoutButton = CreateGlyphButton(QuickGlyph.Layout, 328, 16, 30, 30);
             _fullLayoutButton.Click += ShowLayoutMenu;
             header.Controls.Add(_fullLayoutButton);
@@ -828,6 +836,9 @@ namespace QuickControls.UI
             AddLayoutItem(menu, PanelLayoutMode.VerticalMini, "Layout.VerticalMini");
             AddLayoutItem(menu, PanelLayoutMode.EdgeDock, "Layout.EdgeDock");
             menu.Items.Add(new ToolStripSeparator());
+            _menuHardware = new ToolStripMenuItem();
+            _menuHardware.Click += delegate { Raise(HardwareMonitorRequested); };
+            menu.Items.Add(_menuHardware);
             _menuSettings = new ToolStripMenuItem();
             _menuSettings.Click += delegate { Raise(SettingsRequested); };
             menu.Items.Add(_menuSettings);
@@ -1166,7 +1177,7 @@ namespace QuickControls.UI
         private static extern IntPtr SendMessage(IntPtr window, int message, IntPtr wParam, IntPtr lParam);
     }
 
-    internal enum QuickGlyph { Speaker, Sun, Grip, Layout, Collapse, Expand, Close }
+    internal enum QuickGlyph { Speaker, Sun, Grip, Activity, Layout, Collapse, Expand, Close }
 
     internal static class QuickGlyphPainter
     {
@@ -1210,6 +1221,13 @@ namespace QuickControls.UI
                             graphics.FillEllipse(brush, 8, 6 + row * 5, 2.5F, 2.5F);
                             graphics.FillEllipse(brush, 14, 6 + row * 5, 2.5F, 2.5F);
                         }
+                        break;
+                    case QuickGlyph.Activity:
+                        graphics.DrawLines(pen, new PointF[]
+                        {
+                            new PointF(4, 13), new PointF(8, 13), new PointF(11, 7),
+                            new PointF(15, 18), new PointF(18, 11), new PointF(21, 11)
+                        });
                         break;
                     case QuickGlyph.Layout:
                         graphics.DrawRectangle(pen, 4, 5, 6, 6);

@@ -72,6 +72,24 @@ For a built-in display, first confirm that the Windows brightness slider works. 
 
 Read [Display brightness compatibility](DISPLAY-COMPATIBILITY.md) for supported paths and common dock, hub, adapter, TV, and DisplayLink limitations.
 
+## Hardware Monitor shows Not reported
+
+**Not reported** means Windows and the installed device driver did not supply a usable value. It is a supported state, not a warning that the hardware is damaged or overheating.
+
+- CPU temperature is expected to be unavailable on many computers because standard Windows APIs do not provide a dependable CPU package or die temperature.
+- GPU temperature appears only when the installed Windows graphics driver exposes compatible telemetry.
+- Storage temperature appears only when the drive, storage controller, and Windows driver expose compatible telemetry.
+
+The CPU, GPU, memory, and storage activity graphs continue with the readings that are available. A real `0%` reading is shown as zero; it is not replaced with **Not reported**. Quick Controls does not request administrator access or install a sensor driver to force unavailable readings.
+
+If a GPU or storage temperature used to appear, install the current driver offered by Windows Update or the computer/device manufacturer, restart Windows, and open Hardware Monitor again. Avoid installing an unrelated third-party sensor driver only to fill a missing value.
+
+## Hardware graphs are empty or paused
+
+Leave Hardware Monitor open for a few seconds. Initial device and performance-counter discovery can take longer than later samples; after warm-up, the rolling line fills gradually until it contains the latest 60 seconds.
+
+Sampling runs only while the Hardware Monitor window is open. Closing it intentionally stops the background sampling worker and clears that window's in-memory history; reopening it starts a new graph. If the window is open but every activity graph remains unavailable, close and reopen it, restart Windows, and update the relevant Windows device drivers before filing a bug report.
+
 ## Windows SmartScreen warns about the installer
 
 The current installer does not have a commercial code-signing certificate. Windows SmartScreen may show **Windows protected your PC** because the publisher cannot be verified.
