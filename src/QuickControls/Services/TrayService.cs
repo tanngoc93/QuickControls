@@ -21,6 +21,7 @@ namespace QuickControls.Services
         private readonly ToolStripMenuItem _exitItem;
         private readonly Dictionary<PanelLayoutMode, ToolStripMenuItem> _layoutItems;
         private Icon _icon;
+        private bool _disposed;
 
         public TrayService(bool startWithWindows)
         {
@@ -72,6 +73,7 @@ namespace QuickControls.Services
 
         public void ApplyLanguage()
         {
+            if (_disposed) return;
             Font oldMenuFont = _menu.Font;
             Font oldOpenFont = _openItem.Font;
             _menu.Font = AppText.CreateFont(10F, FontStyle.Regular);
@@ -113,9 +115,19 @@ namespace QuickControls.Services
 
         public void Dispose()
         {
+            if (_disposed) return;
+            _disposed = true;
+            _notifyIcon.MouseClick -= NotifyIconMouseClick;
             _notifyIcon.Visible = false;
+            _notifyIcon.ContextMenuStrip = null;
+            Font menuFont = _menu.Font;
+            Font openFont = _openItem.Font;
             _notifyIcon.Dispose();
+            _menu.Dispose();
+            if (openFont != null) openFont.Dispose();
+            if (menuFont != null && !object.ReferenceEquals(menuFont, openFont)) menuFont.Dispose();
             if (_icon != null) _icon.Dispose();
+            _icon = null;
         }
 
         private void AddLayoutItem(PanelLayoutMode mode)

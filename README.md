@@ -174,6 +174,8 @@ Run the automated checks:
 powershell -ExecutionPolicy Bypass -File .\scripts\test.ps1
 ```
 
+The suite includes a real dropdown lifecycle regression for the `ModernChoiceBox` implementation used by the language, dock-edge, and adjustment selectors. It opens, selects, closes, reopens, and disposes the control without changing hardware levels or saved preferences.
+
 Inspect audio, brightness, and shortcut support on the current computer without changing active levels:
 
 ```powershell

@@ -166,7 +166,12 @@ namespace QuickControls
             _trayService.MuteRequested += delegate { ToggleMute(false); };
             _trayService.SettingsRequested += delegate { ShowSettings(); };
             _trayService.AboutRequested += delegate { ShowAbout(); };
-            _trayService.ExitRequested += delegate { ExitApplication(true); };
+            _trayService.ExitRequested += delegate
+            {
+                // ToolStrip item clicks finish before their drop-down close pipeline.
+                // Queue exit so TrayService can dispose the menu only after that work unwinds.
+                ShowOnUiThread(delegate { ExitApplication(true); });
+            };
             _trayService.StartupToggleRequested += TrayStartupToggleRequested;
             _trayService.LayoutRequested += delegate(object sender, PanelLayoutEventArgs args)
             {

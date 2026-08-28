@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
 using QuickControls.Models;
@@ -70,6 +71,80 @@ namespace QuickControls.UI
         public static void RenderSettingsPage(string outputPath, string pageName, string languageCode)
         {
             RunOnSta(delegate { RenderSettingsPageCore(outputPath, pageName, languageCode); });
+        }
+
+        public static void ValidateChoiceDropDownLifecycle()
+        {
+            RunOnSta(ValidateChoiceDropDownLifecycleCore);
+        }
+
+        private static void ValidateChoiceDropDownLifecycleCore()
+        {
+            EnsureVisualStyles();
+            MethodInfo showDropDown = typeof(ModernChoiceBox).GetMethod(
+                "ShowDropDown", BindingFlags.Instance | BindingFlags.NonPublic);
+            FieldInfo dropDownMenuField = typeof(ModernChoiceBox).GetField(
+                "_dropDownMenu", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (showDropDown == null || dropDownMenuField == null)
+                throw new InvalidOperationException("ModernChoiceBox dropdown test hooks are unavailable.");
+
+            ContextMenuStrip ownedMenu = null;
+            using (Form host = new NonActivatingTestForm())
+            {
+                ModernChoiceBox choice = new ModernChoiceBox();
+                choice.SetBounds(8, 8, 200, 40);
+                choice.Items.Add("English");
+                choice.Items.Add("Vietnamese");
+                choice.SelectedIndex = 0;
+                host.Controls.Add(choice);
+                host.Show();
+                host.Refresh();
+                Application.DoEvents();
+
+                showDropDown.Invoke(choice, null);
+                Application.DoEvents();
+                ownedMenu = dropDownMenuField.GetValue(choice) as ContextMenuStrip;
+                AssertChoiceMenuReady(ownedMenu, 2);
+                ownedMenu.Items[1].PerformClick();
+                Application.DoEvents();
+                AssertChoiceSelection(choice, ownedMenu, 1);
+
+                showDropDown.Invoke(choice, null);
+                Application.DoEvents();
+                ContextMenuStrip reopenedMenu = dropDownMenuField.GetValue(choice) as ContextMenuStrip;
+                if (!object.ReferenceEquals(ownedMenu, reopenedMenu))
+                    throw new InvalidOperationException("ModernChoiceBox did not reuse its owned dropdown menu.");
+                AssertChoiceMenuReady(reopenedMenu, 2);
+                reopenedMenu.Items[0].PerformClick();
+                Application.DoEvents();
+                AssertChoiceSelection(choice, reopenedMenu, 0);
+
+                host.Close();
+            }
+            Application.DoEvents();
+            if (ownedMenu == null || !ownedMenu.IsDisposed)
+                throw new InvalidOperationException("ModernChoiceBox did not dispose its owned dropdown menu.");
+        }
+
+        private static void AssertChoiceMenuReady(ContextMenuStrip menu, int expectedItems)
+        {
+            if (menu == null || menu.IsDisposed)
+                throw new InvalidOperationException("ModernChoiceBox dropdown menu is unavailable.");
+            if (!menu.Visible)
+                throw new InvalidOperationException("ModernChoiceBox dropdown menu did not open.");
+            if (menu.Items.Count != expectedItems)
+                throw new InvalidOperationException("ModernChoiceBox dropdown menu contains unexpected items.");
+        }
+
+        private static void AssertChoiceSelection(
+            ModernChoiceBox choice, ContextMenuStrip menu, int expectedIndex)
+        {
+            if (choice.SelectedIndex != expectedIndex)
+                throw new InvalidOperationException("ModernChoiceBox did not apply the selected item.");
+            if (menu.IsDisposed)
+                throw new InvalidOperationException("ModernChoiceBox disposed its dropdown during item selection.");
+            if (menu.Visible)
+                throw new InvalidOperationException("ModernChoiceBox dropdown remained open after selection.");
         }
 
         private static void RenderSettingsPageCore(string outputPath, string pageName, string languageCode)
@@ -157,6 +232,34 @@ namespace QuickControls.UI
             public override bool TryGetPercent(out int percent) { percent = 58; return true; }
             public override bool SetPercent(int percent) { return true; }
             public override void Dispose() { }
+        }
+
+        private sealed class NonActivatingTestForm : Form
+        {
+            public NonActivatingTestForm()
+            {
+                FormBorderStyle = FormBorderStyle.None;
+                ShowInTaskbar = false;
+                StartPosition = FormStartPosition.Manual;
+                Location = new Point(-10000, -10000);
+                ClientSize = new Size(216, 56);
+                Opacity = 0.01D;
+            }
+
+            protected override bool ShowWithoutActivation
+            {
+                get { return true; }
+            }
+
+            protected override CreateParams CreateParams
+            {
+                get
+                {
+                    CreateParams parameters = base.CreateParams;
+                    parameters.ExStyle |= 0x08000000;
+                    return parameters;
+                }
+            }
         }
     }
 }

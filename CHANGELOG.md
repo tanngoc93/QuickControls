@@ -23,6 +23,10 @@ All notable user-facing changes to Quick Controls are documented here.
 - Rebuilt the uninstaller with a DPI-safe stacked layout, a separate action footer, and progress that appears only while removal is running.
 - Added safe, non-activating uninstaller screenshots plus multi-state non-overlap checks with simulated 100%, 125%, 150%, 175%, and 200% content scaling.
 
+### Fixed
+
+- Fixed the `ContextMenuStrip` disposed-object crash that could occur after choosing a language, dock edge, or adjustment amount in Settings.
+
 ## [1.0.0] - 2026-08-28
 
 ### Added

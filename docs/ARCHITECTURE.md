@@ -46,7 +46,7 @@ The redesigned Settings pages use dedicated controls instead of native WinForms 
 - `LayoutOptionButton` draws the four panel shapes in a direct `2 x 2` tile selector and exposes selection state to accessibility clients.
 - `HotkeyTextBox` captures a modified key combination and draws each saved token as a keycap, with focused and invalid states.
 - `ModernToggle` presents startup, always-on-top, and automatic mini behavior as keyboard-operable toggle rows.
-- `ModernChoiceBox` provides code-native language, dock-edge, and adjustment-step selection.
+- `ModernChoiceBox` provides code-native language, dock-edge, and adjustment-step selection. Each control owns one reusable dropdown and disposes it only when the control itself is disposed, after any active WinForms close sequence has completed.
 
 Settings edits are made against a cloned `AppSettings` candidate. **Save changes** validates duplicate and invalid shortcuts before the controller applies the candidate; cancelling the window leaves the active settings unchanged.
 

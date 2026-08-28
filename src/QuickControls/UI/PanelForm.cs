@@ -282,7 +282,9 @@ namespace QuickControls.UI
             _layoutItems[PanelLayoutMode.EdgeDock].Text = AppText.Get("Layout.EdgeDock");
             _menuSettings.Text = AppText.Get("Common.Settings");
             _menuHide.Text = AppText.Get("Panel.HideToTray.Accessible");
+            Font oldLayoutMenuFont = _layoutMenu.Font;
             _layoutMenu.Font = AppText.CreateFont(9.5F, FontStyle.Regular);
+            if (oldLayoutMenuFont != null) oldLayoutMenuFont.Dispose();
             SetAccessibility(_verticalCollapse,
                 _preferredLayout == PanelLayoutMode.EdgeDock
                     ? "Panel.ReturnToEdgeTab.Accessible"
@@ -544,7 +546,12 @@ namespace QuickControls.UI
             {
                 if (_collapseTimer != null) _collapseTimer.Dispose();
                 if (_toolTip != null) _toolTip.Dispose();
-                if (_layoutMenu != null) _layoutMenu.Dispose();
+                if (_layoutMenu != null)
+                {
+                    Font layoutMenuFont = _layoutMenu.Font;
+                    _layoutMenu.Dispose();
+                    if (layoutMenuFont != null) layoutMenuFont.Dispose();
+                }
             }
             base.Dispose(disposing);
         }

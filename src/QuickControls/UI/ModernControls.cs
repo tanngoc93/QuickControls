@@ -433,6 +433,7 @@ namespace QuickControls.UI
     public sealed class ModernChoiceBox : Control
     {
         private readonly List<object> _items = new List<object>();
+        private ContextMenuStrip _dropDownMenu;
         private int _selectedIndex = -1;
         private bool _hovered;
         private bool _menuOpen;
@@ -565,6 +566,26 @@ namespace QuickControls.UI
             base.OnLostFocus(eventArgs);
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _menuOpen = false;
+                ContextMenuStrip menu = _dropDownMenu;
+                _dropDownMenu = null;
+                if (menu != null)
+                {
+                    menu.Closed -= DropDownMenuClosed;
+                    if (!menu.IsDisposed)
+                    {
+                        if (menu.Visible) menu.Close(ToolStripDropDownCloseReason.CloseCalled);
+                        menu.Dispose();
+                    }
+                }
+            }
+            base.Dispose(disposing);
+        }
+
         protected override void OnPaint(PaintEventArgs eventArgs)
         {
             if (Width <= 1 || Height <= 1) return;
@@ -612,13 +633,12 @@ namespace QuickControls.UI
         private void ShowDropDown()
         {
             if (!Enabled || _items.Count == 0 || _menuOpen) return;
-            ContextMenuStrip menu = new ContextMenuStrip();
-            menu.ShowImageMargin = false;
-            menu.ShowCheckMargin = true;
+            ContextMenuStrip menu = GetDropDownMenu();
             menu.BackColor = AppColors.Card;
             menu.ForeColor = AppColors.Text;
             menu.Font = Font;
             menu.Padding = new Padding(2);
+            ClearDropDownItems(menu);
             for (int index = 0; index < _items.Count; index++)
             {
                 int itemIndex = index;
@@ -629,15 +649,45 @@ namespace QuickControls.UI
                 item.Click += delegate { SelectedIndex = itemIndex; };
                 menu.Items.Add(item);
             }
-            menu.Closed += delegate
+            _menuOpen = true;
+            Invalidate();
+            try
+            {
+                menu.Show(this, new Point(0, Height + 2));
+            }
+            catch
             {
                 _menuOpen = false;
                 Invalidate();
-                menu.Dispose();
-            };
-            _menuOpen = true;
-            Invalidate();
-            menu.Show(this, new Point(0, Height + 2));
+                throw;
+            }
+        }
+
+        private ContextMenuStrip GetDropDownMenu()
+        {
+            if (_dropDownMenu != null && !_dropDownMenu.IsDisposed) return _dropDownMenu;
+            ContextMenuStrip menu = new ContextMenuStrip();
+            menu.ShowImageMargin = false;
+            menu.ShowCheckMargin = true;
+            menu.Closed += DropDownMenuClosed;
+            _dropDownMenu = menu;
+            return menu;
+        }
+
+        private static void ClearDropDownItems(ContextMenuStrip menu)
+        {
+            while (menu.Items.Count > 0)
+            {
+                ToolStripItem item = menu.Items[0];
+                menu.Items.RemoveAt(0);
+                item.Dispose();
+            }
+        }
+
+        private void DropDownMenuClosed(object sender, ToolStripDropDownClosedEventArgs eventArgs)
+        {
+            _menuOpen = false;
+            if (!IsDisposed && !Disposing) Invalidate();
         }
 
         private sealed class ChoiceAccessibleObject : ControlAccessibleObject

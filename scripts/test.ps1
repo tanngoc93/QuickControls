@@ -90,6 +90,10 @@ $settingsPagePreviewMethod = $previewType.GetMethod(
 $settingsPagePreviewMethod.Invoke($null, $shortcutsRenderArguments) | Out-Null
 [object[]]$frenchRenderArguments = @([string]$frenchPreviewPath, [string]'Interface', [string]'fr')
 $settingsPagePreviewMethod.Invoke($null, $frenchRenderArguments) | Out-Null
+$choiceDropDownLifecycleMethod = $previewType.GetMethod(
+    'ValidateChoiceDropDownLifecycle',
+    [System.Reflection.BindingFlags]::Public -bor [System.Reflection.BindingFlags]::Static)
+$choiceDropDownLifecycleMethod.Invoke($null, @()) | Out-Null
 
 $installerAssembly = [System.Reflection.Assembly]::LoadFrom($setupPath)
 $installerPreviewType = $installerAssembly.GetType(
@@ -150,7 +154,11 @@ if ($languageOptions.Count -ne 5) {
 $trayType = $applicationAssembly.GetType('QuickControls.Services.TrayService', $true)
 $trayService = [System.Activator]::CreateInstance($trayType, @([bool]$false))
 try {
-    $trayType.GetMethod('ApplyLanguage').Invoke($trayService, @()) | Out-Null
+    $setLanguageMethod = $appTextType.GetMethod('SetLanguage')
+    foreach ($languageCode in @('en', 'vi', 'ja', 'zh-CN', 'fr', 'en')) {
+        $setLanguageMethod.Invoke($null, @([string]$languageCode)) | Out-Null
+        $trayType.GetMethod('ApplyLanguage').Invoke($trayService, @()) | Out-Null
+    }
 }
 finally {
     if ($null -ne $trayService) {

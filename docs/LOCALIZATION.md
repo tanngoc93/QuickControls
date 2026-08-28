@@ -81,7 +81,7 @@ Run the complete validation suite:
 powershell -ExecutionPolicy Bypass -File .\scripts\test.ps1
 ```
 
-The tests call `AppText.ValidateCatalog()`, require the expected language count, initialize the localized tray service, and render localized Interface, Keyboard shortcuts, General, and Full-panel previews. The normal build also renders canonical English Interface and Keyboard shortcuts screenshots for project documentation.
+The tests call `AppText.ValidateCatalog()`, require the expected language count, reapply every supported language to one tray service, and render localized Interface, Keyboard shortcuts, General, and Full-panel previews. They also open a real `ModernChoiceBox` instance—the implementation used by the language selector—select an item, close and reopen it, and verify that the menu remains valid throughout the WinForms click lifecycle. The normal build also renders canonical English Interface and Keyboard shortcuts screenshots for project documentation.
 
 ## Manual localization checklist
 
