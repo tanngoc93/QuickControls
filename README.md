@@ -51,6 +51,7 @@ Install it once, then use your keyboard, the on-screen panel, or the system tray
 - See on-screen volume and brightness feedback after hotkey actions.
 - Run quietly from the system tray and optionally start with Windows.
 - Install per user without an administrator prompt.
+- Remove the app through a clear, DPI-safe uninstaller without clipped options at common Windows display scaling levels.
 - Keep preferences in a local settings file with no account or cloud service.
 
 ## Screenshots
@@ -63,6 +64,7 @@ Install it once, then use your keyboard, the on-screen panel, or the system tray
 | Left or right Edge Dock | ![Quick Controls Windows volume and brightness Edge Dock panel](docs/images/quick-controls-edge-dock-panel.png) |
 | Language and panel layout settings | ![Quick Controls language and panel layout settings](docs/images/quick-controls-language-panel-layout-settings.png) |
 | Keyboard shortcut settings | ![Quick Controls keyboard shortcut settings](docs/images/quick-controls-keyboard-shortcuts-settings.png) |
+| Windows uninstaller | ![Quick Controls DPI-safe Windows uninstaller with optional saved settings removal](docs/images/quick-controls-uninstaller.png) |
 
 ## Install Quick Controls
 
@@ -71,7 +73,7 @@ Install it once, then use your keyboard, the on-screen panel, or the system tray
 3. Select **Install now**.
 4. Use the panel or the default shortcuts immediately.
 
-The installer creates Desktop and Start menu shortcuts, registers Quick Controls in Windows Installed Apps, and starts the app in the system tray. No folder selection or technical setup is required.
+The installer creates Desktop and Start menu shortcuts, registers Quick Controls in Windows Installed Apps, and starts the app in the system tray. No folder selection or technical setup is required. The install and uninstall dialogs scale with Windows so their options remain readable on high-DPI displays.
 
 > **Windows security notice:** the current release is not signed with a commercial code-signing certificate. Windows SmartScreen may display a publisher warning. Only continue when the file came from this repository's official Releases page. Managed computers may block unsigned apps completely; see [Troubleshooting](docs/TROUBLESHOOTING.md#windows-smartscreen-warns-about-the-installer).
 
@@ -236,7 +238,7 @@ The current installer is unsigned, so Windows cannot verify a publisher. Downloa
 
 ### How do I remove Quick Controls and its settings?
 
-Uninstall it from **Windows Settings > Apps > Installed apps**. Select **Also delete saved shortcuts and settings** in the uninstaller to remove the local preferences too.
+Uninstall it from **Windows Settings > Apps > Installed apps**. Select **Also delete saved shortcuts and settings** in the uninstaller to remove the local preferences too. The option stays above a separate action footer and the layout is designed to remain readable with Windows display scaling.
 
 ## Project structure
 

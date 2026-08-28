@@ -151,4 +151,8 @@ Download a newer `QuickControls-Setup.exe` and run it. The installer detects the
 3. Find **Quick Controls** and select **Uninstall**.
 4. Optionally select **Also delete saved shortcuts and settings**.
 
+![Quick Controls uninstaller with a visible optional settings checkbox](images/quick-controls-uninstaller.png)
+
 Settings are stored at `%LOCALAPPDATA%\QuickControls\settings.xml` and remain after uninstall unless you choose to delete them.
+
+The progress bar appears only after you select **Uninstall**. The dialog uses a separate footer and a DPI-aware stacked layout so the settings option and action buttons do not overlap at common Windows display scaling levels.

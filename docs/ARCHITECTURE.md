@@ -80,3 +80,5 @@ Settings and hardware commands are handled locally. The application source conta
 The installer embeds the app executable and configuration file, installs under `%LOCALAPPDATA%\Programs\QuickControls`, creates Desktop and Start menu shortcuts, and registers an uninstaller for Windows Installed Apps. Installation runs as the current user without an elevation request.
 
 The installer uses a transaction and rollback snapshots for file, shortcut, startup, and uninstall-registration changes. A cleanup helper removes the running uninstaller after removal completes.
+
+The setup dialogs use DPI autoscaling without fixed outer-size clamps. The uninstaller uses table-based header, content, and footer regions so status text, the optional settings checkbox, and actions cannot occupy the same space. `InstallerPreviewRenderer` uses a non-activating preview form with no install or uninstall event handlers. Automated checks validate ready, working, error, and completed layouts with simulated content-and-font scaling at 100%, 125%, 150%, 175%, and 200%; native Windows chrome still needs real high-DPI visual verification.

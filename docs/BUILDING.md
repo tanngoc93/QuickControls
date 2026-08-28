@@ -23,7 +23,7 @@ The build creates these generated files under `artifacts`:
 - `QuickControls-Setup.exe`, the one-click per-user installer.
 - `QuickControls-Portable.zip`.
 - The application icon.
-- Full-panel, Horizontal Mini, Vertical Mini, Edge Dock, and redesigned Settings UI previews.
+- Full-panel, Horizontal Mini, Vertical Mini, Edge Dock, redesigned Settings, and uninstaller UI previews.
 
 The preview files include:
 
@@ -33,6 +33,8 @@ The preview files include:
 - `QuickControls-Edge-Preview.png` — Edge Dock.
 - `QuickControls-Settings-Preview.png` — Interface page with the direct `2 x 2` layout tiles.
 - `QuickControls-Shortcuts-Preview.png` — Keyboard shortcuts page with keycap fields.
+- `QuickControls-Uninstaller-Preview.png` — ready-state uninstaller dialog at 100% scaling.
+- `QuickControls-Uninstaller-150-Preview.png` — simulated 150% content-and-font scaling regression preview.
 
 Use `-SkipPreview` when preview images are not needed:
 
@@ -46,7 +48,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build.ps1 -SkipPreview
 powershell -ExecutionPolicy Bypass -File .\scripts\test.ps1
 ```
 
-The check validates required artifact sizes, loads the application assembly, renders all four panel layouts and the redesigned Settings pages, verifies expected image dimensions, validates the five-language text catalog, checks the installer executable header, and reports Authenticode signature status. It also renders localized Interface, Keyboard shortcuts, General, and Full-panel previews for English, Vietnamese, Japanese, Simplified Chinese, and French to catch clipping and missing-font regressions.
+The check validates required artifact sizes, loads the application assembly, renders all four panel layouts and the redesigned Settings pages, verifies expected image dimensions, validates the five-language text catalog, checks the installer executable header, and reports Authenticode signature status. It also renders localized Interface, Keyboard shortcuts, General, and Full-panel previews for English, Vietnamese, Japanese, Simplified Chinese, and French to catch clipping and missing-font regressions. Uninstaller checks exercise ready, working, error, and completed states and verify that every visible control stays inside its parent with simulated 100%, 125%, 150%, 175%, or 200% content-and-font scaling. The preview form cannot activate or invoke uninstall actions. Native title-bar and checkbox chrome still require a final visual check on a real high-DPI Windows desktop.
 
 Use `-RequireSigned` for a release build that must have valid signatures:
 

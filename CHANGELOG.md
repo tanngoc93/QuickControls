@@ -20,6 +20,8 @@ All notable user-facing changes to Quick Controls are documented here.
 - Added keycap-style shortcut capture and modern toggle rows for startup, always-on-top, and automatic mini behavior.
 - Improved DPI handling, screen-edge placement, localized fonts, accessibility names, and UI preview validation.
 - Edge Dock now restores its screen-edge tab without stealing focus when Quick Controls starts with Windows.
+- Rebuilt the uninstaller with a DPI-safe stacked layout, a separate action footer, and progress that appears only while removal is running.
+- Added safe, non-activating uninstaller screenshots plus multi-state non-overlap checks with simulated 100%, 125%, 150%, 175%, and 200% content scaling.
 
 ## [1.0.0] - 2026-08-28
 

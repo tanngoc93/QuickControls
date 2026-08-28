@@ -22,6 +22,8 @@ $verticalPreviewOutput = Join-Path $artifactRoot 'QuickControls-Vertical-Preview
 $edgePreviewOutput = Join-Path $artifactRoot 'QuickControls-Edge-Preview.png'
 $settingsPreviewOutput = Join-Path $artifactRoot 'QuickControls-Settings-Preview.png'
 $shortcutsPreviewOutput = Join-Path $artifactRoot 'QuickControls-Shortcuts-Preview.png'
+$uninstallerPreviewOutput = Join-Path $artifactRoot 'QuickControls-Uninstaller-Preview.png'
+$uninstallerScaledPreviewOutput = Join-Path $artifactRoot 'QuickControls-Uninstaller-150-Preview.png'
 
 $compilerCandidates = @(
     (Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'),
@@ -246,6 +248,19 @@ if (-not $SkipPreview) {
     [object[]]$shortcutsRenderArguments = @([string]$shortcutsPreviewOutput, [string]'Shortcuts', [string]'en')
     $settingsPagePreviewMethod.Invoke($null, $shortcutsRenderArguments) | Out-Null
 
+    Write-Host 'Rendering uninstaller UI previews...'
+    $installerAssembly = [System.Reflection.Assembly]::LoadFrom($setupOutput)
+    $installerPreviewType = $installerAssembly.GetType(
+        'QuickControls.Installer.InstallerPreviewRenderer',
+        $true)
+    $uninstallerPreviewMethod = $installerPreviewType.GetMethod('RenderUninstaller')
+    [object[]]$uninstallerPreviewArguments = @([string]$uninstallerPreviewOutput)
+    $uninstallerPreviewMethod.Invoke($null, $uninstallerPreviewArguments) | Out-Null
+    $uninstallerScaledPreviewMethod = $installerPreviewType.GetMethod('RenderUninstallerAtScale')
+    [object[]]$uninstallerScaledPreviewArguments = @(
+        [string]$uninstallerScaledPreviewOutput,
+        [single]1.5)
+    $uninstallerScaledPreviewMethod.Invoke($null, $uninstallerScaledPreviewArguments) | Out-Null
 }
 
 $setupHash = (Get-FileHash -LiteralPath $setupOutput -Algorithm SHA256).Hash
@@ -261,6 +276,8 @@ if (-not $SkipPreview) {
     Write-Host "Edge UI:     $edgePreviewOutput"
     Write-Host "Settings UI: $settingsPreviewOutput"
     Write-Host "Shortcuts UI:$shortcutsPreviewOutput"
+    Write-Host "Uninstall UI: $uninstallerPreviewOutput"
+    Write-Host "Uninstall 150%: $uninstallerScaledPreviewOutput"
 }
 Write-Host "Setup SHA256: $setupHash"
 if ($null -ne $signingCertificate) { Write-Host "Signed by:    $($signingCertificate.Subject)" }

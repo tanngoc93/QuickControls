@@ -45,6 +45,7 @@
     <Compile Include="CleanupRunner.cs" />
     <Compile Include="InstallEngine.cs" />
     <Compile Include="InstallerForm.cs" />
+    <Compile Include="InstallerPreviewRenderer.cs" />
     <Compile Include="NativeShortcut.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

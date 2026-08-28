@@ -17,6 +17,8 @@ $edgePreviewPath = Join-Path $artifactRoot 'QuickControls-Edge-Preview.png'
 $settingsPreviewPath = Join-Path $artifactRoot 'QuickControls-Settings-Preview.png'
 $shortcutsPreviewPath = Join-Path $artifactRoot 'QuickControls-Shortcuts-Preview.png'
 $frenchPreviewPath = Join-Path $artifactRoot 'QuickControls-Settings-French-Preview.png'
+$uninstallerPreviewPath = Join-Path $artifactRoot 'QuickControls-Uninstaller-Preview.png'
+$uninstallerScaledPreviewPath = Join-Path $artifactRoot 'QuickControls-Uninstaller-150-Preview.png'
 
 $requiredArtifactsExist =
     (Test-Path -LiteralPath $appPath -PathType Leaf) -and
@@ -88,6 +90,21 @@ $settingsPagePreviewMethod = $previewType.GetMethod(
 $settingsPagePreviewMethod.Invoke($null, $shortcutsRenderArguments) | Out-Null
 [object[]]$frenchRenderArguments = @([string]$frenchPreviewPath, [string]'Interface', [string]'fr')
 $settingsPagePreviewMethod.Invoke($null, $frenchRenderArguments) | Out-Null
+
+$installerAssembly = [System.Reflection.Assembly]::LoadFrom($setupPath)
+$installerPreviewType = $installerAssembly.GetType(
+    'QuickControls.Installer.InstallerPreviewRenderer',
+    $true)
+$uninstallerPreviewMethod = $installerPreviewType.GetMethod('RenderUninstaller')
+[object[]]$uninstallerPreviewArguments = @([string]$uninstallerPreviewPath)
+$uninstallerPreviewMethod.Invoke($null, $uninstallerPreviewArguments) | Out-Null
+$uninstallerScaledPreviewMethod = $installerPreviewType.GetMethod('RenderUninstallerAtScale')
+[object[]]$uninstallerScaledPreviewArguments = @(
+    [string]$uninstallerScaledPreviewPath,
+    [single]1.5)
+$uninstallerScaledPreviewMethod.Invoke($null, $uninstallerScaledPreviewArguments) | Out-Null
+$validateUninstallerLayoutsMethod = $installerPreviewType.GetMethod('ValidateUninstallerLayouts')
+$validateUninstallerLayoutsMethod.Invoke($null, @()) | Out-Null
 
 $layoutLanguagePreviewMethod = $previewType.GetMethod(
     'RenderLayoutLanguage',
@@ -225,6 +242,29 @@ finally {
     $frenchImage.Dispose()
 }
 
+$uninstallerImage = [System.Drawing.Image]::FromFile($uninstallerPreviewPath)
+try {
+    if ($uninstallerImage.Width -lt 560 -or $uninstallerImage.Height -lt 360) {
+        throw "Unexpected uninstaller preview dimensions: $($uninstallerImage.Width)x$($uninstallerImage.Height)."
+    }
+    $uninstallerPreviewWidth = $uninstallerImage.Width
+    $uninstallerPreviewHeight = $uninstallerImage.Height
+}
+finally {
+    $uninstallerImage.Dispose()
+}
+
+$uninstallerScaledImage = [System.Drawing.Image]::FromFile($uninstallerScaledPreviewPath)
+try {
+    if ($uninstallerScaledImage.Width -le $uninstallerPreviewWidth -or
+        $uninstallerScaledImage.Height -le $uninstallerPreviewHeight) {
+        throw "The 150% uninstaller preview did not scale up: $($uninstallerScaledImage.Width)x$($uninstallerScaledImage.Height)."
+    }
+}
+finally {
+    $uninstallerScaledImage.Dispose()
+}
+
 
 $assemblyName = [System.Reflection.AssemblyName]::GetAssemblyName($appPath)
 if ($assemblyName.Name -ne 'QuickControls') {
@@ -250,3 +290,4 @@ Write-Host "Installer bytes:   $((Get-Item -LiteralPath $setupPath).Length)"
 Write-Host "App signature:     $($applicationSignature.Status)"
 Write-Host "Setup signature:   $($setupSignature.Status)"
 Write-Host "Preview:           $previewPath"
+Write-Host "Uninstaller UI:    four states passed at simulated 100%, 125%, 150%, 175%, and 200% scaling"

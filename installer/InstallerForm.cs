@@ -18,16 +18,15 @@ namespace QuickControls.Installer
         internal InstallerForm()
         {
             Text = "Install " + InstallEngine.ProductName;
+            AutoScaleDimensions = new SizeF(96F, 96F);
+            AutoScaleMode = AutoScaleMode.Dpi;
             ClientSize = new Size(560, 370);
-            MinimumSize = new Size(576, 409);
-            MaximumSize = new Size(576, 409);
             StartPosition = FormStartPosition.CenterScreen;
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = true;
             ShowInTaskbar = true;
-            AutoScaleDimensions = new SizeF(96F, 96F);
-            AutoScaleMode = AutoScaleMode.Dpi;
+            SizeGripStyle = SizeGripStyle.Hide;
             Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point);
             BackColor = Color.White;
 
