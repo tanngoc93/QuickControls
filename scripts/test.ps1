@@ -290,6 +290,8 @@ try {
     if ($hardwareImage.Width -ne 920 -or $hardwareImage.Height -ne 620) {
         throw "Unexpected hardware monitor preview dimensions: $($hardwareImage.Width)x$($hardwareImage.Height)."
     }
+    $hardwarePreviewWidth = $hardwareImage.Width
+    $hardwarePreviewHeight = $hardwareImage.Height
 }
 finally {
     $hardwareImage.Dispose()
@@ -297,7 +299,10 @@ finally {
 
 $hardwareScaledImage = [System.Drawing.Image]::FromFile($hardwareScaledPreviewPath)
 try {
-    if ($hardwareScaledImage.Width -ne 1380 -or $hardwareScaledImage.Height -ne 930) {
+    $expectedHardwareScaledWidth = [int][Math]::Round($hardwarePreviewWidth * 1.5)
+    $expectedHardwareScaledHeight = [int][Math]::Round($hardwarePreviewHeight * 1.5)
+    if ($hardwareScaledImage.Width -ne $expectedHardwareScaledWidth -or
+        $hardwareScaledImage.Height -ne $expectedHardwareScaledHeight) {
         throw "Unexpected 150% hardware monitor dimensions: $($hardwareScaledImage.Width)x$($hardwareScaledImage.Height)."
     }
 }

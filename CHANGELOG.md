@@ -29,6 +29,7 @@ All notable user-facing changes to Quick Controls are documented here.
 ### Fixed
 
 - Fixed the `ContextMenuStrip` disposed-object crash that could occur after choosing a language, dock edge, or adjustment amount in Settings.
+- Made the simulated 150% Hardware Monitor preview deterministic across local and GitHub Actions display configurations.
 
 ## [1.0.0] - 2026-08-28
 

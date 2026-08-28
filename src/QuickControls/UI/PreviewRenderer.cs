@@ -97,8 +97,14 @@ namespace QuickControls.UI
             {
                 for (int index = 0; index < 60; index++)
                     form.ApplySnapshot(CreatePreviewHardwareSnapshot(index, DateTime.Now));
-                form.ApplyPreviewScale(scale);
-                CaptureForm(form, outputPath);
+                if (Math.Abs(scale - 1F) > 0.001F)
+                {
+                    CaptureScaledHardwareMonitor(form, outputPath, scale);
+                }
+                else
+                {
+                    CaptureForm(form, outputPath);
+                }
             }
             Application.DoEvents();
         }
@@ -437,19 +443,52 @@ namespace QuickControls.UI
             form.Refresh();
             Application.DoEvents();
             form.Update();
+            CaptureVisibleControl(form, outputPath);
+        }
+
+        private static void CaptureScaledHardwareMonitor(
+            HardwareMonitorForm form,
+            string outputPath,
+            float scale)
+        {
+            // A top-level Form cannot grow past SystemInformation.MaxWindowTrackSize.
+            // Keep the real window at its normal size and enlarge its ordinary root
+            // Panel, which is not capped by the CI desktop's tracking dimensions.
+            form.Opacity = 0.01D;
+            form.Show();
+            form.Refresh();
+            Application.DoEvents();
+            Size originalSize = form.ClientSize;
+            Control surface = form.ApplyPreviewScale(scale);
+            Size expectedSize = new Size(
+                Math.Max(1, (int)Math.Round(originalSize.Width * scale)),
+                Math.Max(1, (int)Math.Round(originalSize.Height * scale)));
+            if (surface.ClientSize != expectedSize)
+                throw new InvalidOperationException(
+                    "Hardware Monitor preview surface did not preserve its requested scale. " +
+                    "Expected " + expectedSize.Width + "x" + expectedSize.Height +
+                    ", received " + surface.ClientSize.Width + "x" + surface.ClientSize.Height + ".");
+            CaptureVisibleControl(surface, outputPath);
+        }
+
+        private static void CaptureVisibleControl(Control control, string outputPath)
+        {
+            control.Refresh();
+            Application.DoEvents();
+            control.Update();
             for (int pass = 0; pass < 3; pass++)
             {
-                using (Bitmap warmUp = new Bitmap(form.Width, form.Height, PixelFormat.Format32bppArgb))
+                using (Bitmap warmUp = new Bitmap(control.Width, control.Height, PixelFormat.Format32bppArgb))
                 {
-                    form.DrawToBitmap(warmUp, new Rectangle(0, 0, warmUp.Width, warmUp.Height));
+                    control.DrawToBitmap(warmUp, new Rectangle(0, 0, warmUp.Width, warmUp.Height));
                 }
-                form.Invalidate(true);
-                form.Update();
+                control.Invalidate(true);
+                control.Update();
                 Application.DoEvents();
             }
-            using (Bitmap bitmap = new Bitmap(form.Width, form.Height, PixelFormat.Format32bppArgb))
+            using (Bitmap bitmap = new Bitmap(control.Width, control.Height, PixelFormat.Format32bppArgb))
             {
-                form.DrawToBitmap(bitmap, new Rectangle(0, 0, bitmap.Width, bitmap.Height));
+                control.DrawToBitmap(bitmap, new Rectangle(0, 0, bitmap.Width, bitmap.Height));
                 bitmap.Save(outputPath, ImageFormat.Png);
             }
         }

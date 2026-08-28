@@ -25,6 +25,7 @@ namespace QuickControls.UI
         private readonly Label _statusLabel;
         private readonly ModernButton _minimizeButton;
         private readonly ModernButton _closeButton;
+        private readonly Panel _rootPanel;
         private readonly HardwareMetricCard _cpuCard;
         private readonly HardwareMetricCard _gpuCard;
         private readonly HardwareMetricCard _memoryCard;
@@ -66,7 +67,8 @@ namespace QuickControls.UI
             {
                 if (args.KeyCode == Keys.Escape) Close();
             };
-            Panel root = new Panel();
+            _rootPanel = new Panel();
+            Panel root = _rootPanel;
             root.Dock = DockStyle.Fill;
             root.BackColor = AppColors.Window;
             root.Paint += PaintRootBorder;
@@ -208,16 +210,27 @@ namespace QuickControls.UI
             FitToWorkingArea(Screen.FromControl(this).WorkingArea, false);
         }
 
-        internal void ApplyPreviewScale(float scale)
+        internal Control ApplyPreviewScale(float scale)
         {
             if (scale <= 0F) throw new ArgumentOutOfRangeException("scale");
-            if (Math.Abs(scale - 1F) < 0.001F) return;
+            if (Math.Abs(scale - 1F) < 0.001F) return _rootPanel;
             SuspendLayout();
-            MinimumSize = Size.Empty;
-            Scale(new SizeF(scale, scale));
+            _rootPanel.SuspendLayout();
+            Rectangle originalBounds = _rootPanel.Bounds;
+            Size originalSize = _rootPanel.ClientSize;
+            _rootPanel.Dock = DockStyle.None;
+            // Removing Dock restores the panel's pre-dock design-time bounds.
+            // Put back the actual laid-out surface before applying preview scale.
+            _rootPanel.Bounds = originalBounds;
+            _rootPanel.Scale(new SizeF(scale, scale));
+            _rootPanel.ClientSize = new Size(
+                Math.Max(1, (int)Math.Round(originalSize.Width * scale)),
+                Math.Max(1, (int)Math.Round(originalSize.Height * scale)));
             _fitFontScale *= scale;
             ApplyLanguage();
+            _rootPanel.ResumeLayout(true);
             ResumeLayout(true);
+            return _rootPanel;
         }
 
         public void ApplyLanguage()
