@@ -1,0 +1,25 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuickControls", "src\QuickControls\QuickControls.csproj", "{3D933385-401B-47A2-B8AA-23AF33139365}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuickControls.Installer", "installer\QuickControls.Installer.csproj", "{44DFD49D-D7A9-48AC-9418-CBA0D770A635}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3D933385-401B-47A2-B8AA-23AF33139365}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D933385-401B-47A2-B8AA-23AF33139365}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D933385-401B-47A2-B8AA-23AF33139365}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D933385-401B-47A2-B8AA-23AF33139365}.Release|Any CPU.Build.0 = Release|Any CPU
+		{44DFD49D-D7A9-48AC-9418-CBA0D770A635}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{44DFD49D-D7A9-48AC-9418-CBA0D770A635}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{44DFD49D-D7A9-48AC-9418-CBA0D770A635}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{44DFD49D-D7A9-48AC-9418-CBA0D770A635}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

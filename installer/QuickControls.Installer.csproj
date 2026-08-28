@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{44DFD49D-D7A9-48AC-9418-CBA0D770A635}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>QuickControls.Installer</RootNamespace>
+    <AssemblyName>QuickControls-Setup</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <StartupObject>QuickControls.Installer.Program</StartupObject>
+    <PayloadExePath Condition=" '$(PayloadExePath)' == '' ">..\src\QuickControls\bin\$(Configuration)\QuickControls.exe</PayloadExePath>
+    <PayloadConfigPath Condition=" '$(PayloadConfigPath)' == '' ">..\src\QuickControls\bin\$(Configuration)\QuickControls.exe.config</PayloadConfigPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="CleanupRunner.cs" />
+    <Compile Include="InstallEngine.cs" />
+    <Compile Include="InstallerForm.cs" />
+    <Compile Include="NativeShortcut.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UninstallerForm.cs" />
+    <None Include="app.manifest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\src\QuickControls\QuickControls.csproj">
+      <Project>{3D933385-401B-47A2-B8AA-23AF33139365}</Project>
+      <Name>QuickControls</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="$(PayloadExePath)">
+      <LogicalName>QuickControls.Payload.exe</LogicalName>
+    </EmbeddedResource>
+    <EmbeddedResource Include="$(PayloadConfigPath)">
+      <LogicalName>QuickControls.Payload.config</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
+  <Target Name="BeforeBuild">
+    <Error Condition=" !Exists('$(PayloadExePath)') " Text="Application payload not found: $(PayloadExePath). Pass /p:PayloadExePath=..." />
+    <Error Condition=" !Exists('$(PayloadConfigPath)') " Text="Configuration payload not found: $(PayloadConfigPath). Pass /p:PayloadConfigPath=..." />
+  </Target>
+</Project>
