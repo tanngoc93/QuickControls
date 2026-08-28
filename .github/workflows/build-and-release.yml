@@ -1,0 +1,83 @@
+name: Windows build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build and test on Windows
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Build the app, installer, and portable package
+        shell: powershell
+        run: .\scripts\build.ps1
+
+      - name: Run automated checks
+        shell: powershell
+        run: .\scripts\test.ps1
+
+      - name: Create SHA-256 checksums
+        shell: powershell
+        run: |
+          $releaseFiles = @(
+            '.\artifacts\QuickControls-Setup.exe',
+            '.\artifacts\QuickControls-Portable.zip'
+          )
+          $checksumLines = foreach ($file in $releaseFiles) {
+            $hash = Get-FileHash -LiteralPath $file -Algorithm SHA256
+            '{0}  {1}' -f $hash.Hash.ToLowerInvariant(), [System.IO.Path]::GetFileName($file)
+          }
+          $checksumLines | Set-Content -LiteralPath '.\artifacts\SHA256SUMS.txt' -Encoding Ascii
+
+      - name: Upload verified build artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: QuickControls-Windows
+          path: |
+            artifacts/QuickControls-Setup.exe
+            artifacts/QuickControls-Portable.zip
+            artifacts/SHA256SUMS.txt
+          if-no-files-found: error
+
+      - name: Publish the initial GitHub release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view v1.0.0 --repo $env:GITHUB_REPOSITORY *> $null
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host 'Release v1.0.0 already exists; no release changes are needed.'
+            exit 0
+          }
+
+          gh release create v1.0.0 `
+            '.\artifacts\QuickControls-Setup.exe' `
+            '.\artifacts\QuickControls-Portable.zip' `
+            '.\artifacts\SHA256SUMS.txt' `
+            --repo $env:GITHUB_REPOSITORY `
+            --verify-tag `
+            --title 'Quick Controls 1.0.0' `
+            --notes-file '.\docs\releases\v1.0.0.md'
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "GitHub release creation failed with exit code $LASTEXITCODE."
+          }

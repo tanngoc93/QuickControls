@@ -1,6 +1,7 @@
 # Quick Controls for Windows — Volume & Brightness Hotkeys
 
 [![Windows 10 and 11](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?logo=windows&logoColor=white)](https://github.com/tanngoc93/QuickControls/releases/latest)
+[![Windows build](https://github.com/tanngoc93/QuickControls/actions/workflows/build-and-release.yml/badge.svg)](https://github.com/tanngoc93/QuickControls/actions/workflows/build-and-release.yml)
 ![C# WinForms](https://img.shields.io/badge/C%23-WinForms-512BD4?logo=dotnet&logoColor=white)
 ![.NET Framework 4.0](https://img.shields.io/badge/.NET%20Framework-4.0-512BD4)
 
@@ -136,6 +137,7 @@ See [Building from source](docs/BUILDING.md) for signing, hardware-write verific
 - [Building from source](docs/BUILDING.md) — build, test, hardware verification, and code signing.
 - [Architecture](docs/ARCHITECTURE.md) — Windows APIs, runtime components, local settings, and installer design.
 - [Changelog](CHANGELOG.md) — user-facing changes by release.
+- [Quick Controls 1.0.0 release notes](docs/releases/v1.0.0.md) — downloads, features, checksums, and the signing notice.
 - [Contributing](CONTRIBUTING.md) — project conventions, verification, and bug-report details.
 
 ## Frequently asked questions
@@ -186,6 +188,7 @@ QuickControls/
 |-- scripts/test.ps1            Automated artifact and UI checks
 |-- scripts/hardware-check.ps1  Optional hardware integration check
 |-- docs/                        User and developer documentation
+|-- .github/workflows/           Windows build and release automation
 |-- QuickControls.sln
 |-- CHANGELOG.md
 |-- CONTRIBUTING.md
