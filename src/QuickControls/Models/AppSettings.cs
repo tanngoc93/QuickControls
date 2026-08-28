@@ -4,11 +4,30 @@ using System.Windows.Forms;
 
 namespace QuickControls.Models
 {
+    public enum PanelLayoutMode
+    {
+        Full = 0,
+        HorizontalMini = 1,
+        VerticalMini = 2,
+        EdgeDock = 3
+    }
+
+    public enum PanelDockEdge
+    {
+        Automatic = 0,
+        Left = 1,
+        Right = 2
+    }
+
     [Serializable]
     public class AppSettings
     {
+        public const int CurrentSettingsVersion = 2;
+
         public AppSettings()
         {
+            SettingsVersion = CurrentSettingsVersion;
+            LanguageCode = "en";
             StartWithWindows = true;
             AlwaysOnTop = true;
             AutoCollapse = true;
@@ -17,6 +36,8 @@ namespace QuickControls.Models
             PanelLeft = -1;
             PanelTop = -1;
             PanelCompact = false;
+            PanelLayoutMode = QuickControls.Models.PanelLayoutMode.Full;
+            DockEdge = PanelDockEdge.Automatic;
             SelectedDisplayId = string.Empty;
 
             VolumeUp = new HotkeyBinding(HotkeyModifiers.Ctrl | HotkeyModifiers.Alt, Keys.Up);
@@ -27,6 +48,8 @@ namespace QuickControls.Models
             TogglePanel = new HotkeyBinding(HotkeyModifiers.Ctrl | HotkeyModifiers.Alt, Keys.Space);
         }
 
+        public int SettingsVersion { get; set; }
+        public string LanguageCode { get; set; }
         public bool StartWithWindows { get; set; }
         public bool AlwaysOnTop { get; set; }
         public bool AutoCollapse { get; set; }
@@ -35,6 +58,8 @@ namespace QuickControls.Models
         public double PanelLeft { get; set; }
         public double PanelTop { get; set; }
         public bool PanelCompact { get; set; }
+        public PanelLayoutMode PanelLayoutMode { get; set; }
+        public PanelDockEdge DockEdge { get; set; }
         public string SelectedDisplayId { get; set; }
 
         public HotkeyBinding VolumeUp { get; set; }
@@ -47,6 +72,8 @@ namespace QuickControls.Models
         public AppSettings Clone()
         {
             AppSettings copy = new AppSettings();
+            copy.SettingsVersion = SettingsVersion;
+            copy.LanguageCode = LanguageCode;
             copy.StartWithWindows = StartWithWindows;
             copy.AlwaysOnTop = AlwaysOnTop;
             copy.AutoCollapse = AutoCollapse;
@@ -55,6 +82,8 @@ namespace QuickControls.Models
             copy.PanelLeft = PanelLeft;
             copy.PanelTop = PanelTop;
             copy.PanelCompact = PanelCompact;
+            copy.PanelLayoutMode = PanelLayoutMode;
+            copy.DockEdge = DockEdge;
             copy.SelectedDisplayId = SelectedDisplayId;
             copy.VolumeUp = SafeClone(VolumeUp);
             copy.VolumeDown = SafeClone(VolumeDown);

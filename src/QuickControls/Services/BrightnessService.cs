@@ -46,7 +46,7 @@ namespace QuickControls.Services
         public BrightnessService(bool refreshImmediately)
         {
             _devices = new List<BrightnessDevice>();
-            StatusMessage = "Looking for displays with adjustable brightness...";
+            StatusMessage = AppText.Get("Panel.DisplaySearching");
             if (refreshImmediately) Refresh();
         }
 
@@ -79,7 +79,7 @@ namespace QuickControls.Services
             }
 
             StatusMessage = _devices.Count == 0
-                ? "The app can't adjust this display's brightness."
+                ? AppText.Get("Panel.DisplayUnsupported")
                 : string.Empty;
         }
 
@@ -113,7 +113,9 @@ namespace QuickControls.Services
 
             for (int index = 0; index < monitors.Count; index++)
             {
-                string name = monitors.Count == 1 ? "Laptop display" : "Laptop display " + (index + 1);
+                string name = monitors.Count == 1
+                    ? AppText.Get("Display.Laptop")
+                    : AppText.Format("Display.LaptopNumber", index + 1);
                 _devices.Add(new WmiBrightnessDevice(monitors[index].InstanceName, name, monitors[index].Levels));
             }
         }
@@ -146,7 +148,7 @@ namespace QuickControls.Services
                         externalNumber++;
                         string description = CleanDescription(physicalMonitors[index].Description);
                         string displayName = string.IsNullOrEmpty(description)
-                            ? "External display " + externalNumber
+                            ? AppText.Format("Display.ExternalNumber", externalNumber)
                             : description;
                         string id = !string.IsNullOrEmpty(monitorIdentity)
                             ? "ddc:" + monitorIdentity + ":" + index

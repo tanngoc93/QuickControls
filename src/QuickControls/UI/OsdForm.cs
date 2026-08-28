@@ -2,6 +2,7 @@ using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using QuickControls.Services;
 
 namespace QuickControls.UI
 {
@@ -21,19 +22,19 @@ namespace QuickControls.UI
             TopMost = true;
             BackColor = AppColors.Card;
             ClientSize = new Size(370, 104);
-            Font = new Font("Segoe UI", 10F);
+            Font = AppText.CreateFont(10F, FontStyle.Regular);
             AutoScaleDimensions = new SizeF(96F, 96F);
             AutoScaleMode = AutoScaleMode.Dpi;
 
             _titleLabel = new Label();
-            _titleLabel.Font = new Font("Segoe UI Semibold", 11F, FontStyle.Regular);
+            _titleLabel.Font = AppText.CreateFont(11F, FontStyle.Bold);
             _titleLabel.ForeColor = AppColors.Text;
             _titleLabel.BackColor = Color.Transparent;
             _titleLabel.SetBounds(24, 18, 245, 26);
             Controls.Add(_titleLabel);
 
             _valueLabel = new Label();
-            _valueLabel.Font = new Font("Segoe UI", 14F, FontStyle.Bold);
+            _valueLabel.Font = AppText.CreateFont(14F, FontStyle.Bold);
             _valueLabel.ForeColor = AppColors.Text;
             _valueLabel.TextAlign = ContentAlignment.MiddleRight;
             _valueLabel.BackColor = Color.Transparent;
@@ -84,15 +85,26 @@ namespace QuickControls.UI
             _hideTimer.Start();
         }
 
+        public void ApplyLanguage()
+        {
+            Font oldTitleFont = _titleLabel.Font;
+            Font oldValueFont = _valueLabel.Font;
+            _titleLabel.Font = AppText.CreateFont(11F, FontStyle.Bold);
+            _valueLabel.Font = AppText.CreateFont(14F, FontStyle.Bold);
+            if (oldTitleFont != null) oldTitleFont.Dispose();
+            if (oldValueFont != null) oldValueFont.Dispose();
+        }
+
         public void ShowMuted(bool muted, int volume)
         {
-            ShowValue(muted ? "Sound muted" : "Sound unmuted", muted ? 0 : volume, false);
+            ShowValue(muted ? AppText.Get("Osd.SoundMuted") : AppText.Get("Osd.SoundUnmuted"),
+                muted ? 0 : volume, false);
         }
 
         protected override void OnResize(EventArgs eventArgs)
         {
             base.OnResize(eventArgs);
-            if (Width > 0 && Height > 0) UiHelpers.ApplyRoundedRegion(this, 24);
+            if (Width > 0 && Height > 0) UiHelpers.ApplyRoundedRegion(this, 4);
         }
 
         private void PositionNearTaskbar()

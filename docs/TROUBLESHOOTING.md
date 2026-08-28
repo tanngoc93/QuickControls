@@ -1,15 +1,34 @@
 # Quick Controls Troubleshooting
 
+The redesigned Settings guidance below describes the current `main` branch. A stable release that predates the [Unreleased](../CHANGELOG.md#unreleased) changes may use an older single-page Settings layout.
+
 ## A keyboard shortcut does not work
 
 Another application may already own the same global shortcut.
 
 1. Open Quick Controls from the system tray.
-2. Select **Settings**.
+2. Select **Settings > Keyboard shortcuts** in the flat dark sidebar.
 3. Select the shortcut field for the affected action.
-4. Press a different key combination and select **Save changes**.
+4. Hold `Ctrl`, `Alt`, `Shift`, or the Windows key and press another key.
+5. Confirm the combination shown as separate keycaps, then select **Save changes**.
 
 Each shortcut must include `Ctrl`, `Alt`, `Shift`, or the Windows key, and no two actions can use the same combination. Shortcuts may not reach Quick Controls while a higher-privilege application or some exclusive full-screen software has focus.
+
+## A shortcut field keeps asking for a modifier
+
+A letter, number, arrow, or function key cannot be registered by itself. Select the field, hold at least one modifier (`Ctrl`, `Alt`, `Shift`, or the Windows key), and then press the second key. The finished combination appears as keycaps in the field.
+
+If **Save changes** reports a duplicate, choose a different combination for one of the two actions. Restoring defaults repopulates the fields but does not apply them until you save.
+
+## I cannot find an option in Settings
+
+The redesigned Settings window separates options into three entries in the flat dark sidebar:
+
+- **Interface** contains language, the four direct panel-layout tiles, and Edge Dock position.
+- **Keyboard shortcuts** contains the six keycap capture fields.
+- **General** contains adjustment amount, modern toggle rows, and panel-position reset.
+
+The custom title bar can be dragged to move Settings. The close button, **Cancel**, and `Esc` close the window without applying candidate changes; use **Save changes** when you want the selected values to take effect.
 
 ## The panel is missing
 
@@ -19,6 +38,29 @@ Each shortcut must include `Ctrl`, `Alt`, `Shift`, or the Windows key, and no tw
 - Open **Quick Controls** from the Start menu.
 
 Closing the panel hides it to the system tray. To stop the app completely, right-click its tray icon and select **Exit**.
+
+If **Edge Dock** is selected, look for the narrow Quick Controls tab on the left or right side of the current display. Select the tab to open the Vertical Mini controls. You can also right-click the tray icon and choose a different option under **Panel layout**.
+
+If the panel was moved off-screen after a monitor was disconnected, open **Settings** from the tray menu, select **General**, choose **Reset panel position**, and save the changes.
+
+## Edge Dock covers part of another window
+
+Edge Dock is a small overlay. It does not reserve Windows desktop work area, so a maximized window can extend behind it. This behavior avoids changing the taskbar or the way other applications are arranged.
+
+Choose one of these options:
+
+- Move Edge Dock to the opposite side under **Settings > Interface > Dock edge**.
+- Turn off **Keep the panel above other windows** under **Settings > General**.
+- Choose **Horizontal Mini** or **Vertical Mini** under **Panel layout**.
+- Hide Quick Controls to the system tray and use the keyboard shortcuts.
+
+## The app is using the wrong language
+
+Open **Settings > Interface**, choose English, Vietnamese, Japanese, Simplified Chinese, or French under **Language**, then select **Save changes**. The interface changes after the settings are saved.
+
+If you cannot read the current labels, open Settings from the tray menu, select the first page in the left navigation, use the first selection box on that page, and then select the highlighted save button in the lower-right corner.
+
+If the saved language code is missing or unsupported, Quick Controls falls back to English. See the [localization guide](LOCALIZATION.md) when diagnosing a developer build with missing or mismatched translations.
 
 ## No audio output device was found
 

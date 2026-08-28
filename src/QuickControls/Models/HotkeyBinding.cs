@@ -1,5 +1,6 @@
 using System;
 using System.Windows.Forms;
+using QuickControls.Services;
 
 namespace QuickControls.Models
 {
@@ -58,14 +59,14 @@ namespace QuickControls.Models
         {
             if (!IsValid())
             {
-                return "Not set";
+                return AppText.Get("Hotkey.NotSet");
             }
 
             string text = string.Empty;
             if ((Modifiers & HotkeyModifiers.Ctrl) != 0) text += "Ctrl + ";
             if ((Modifiers & HotkeyModifiers.Alt) != 0) text += "Alt + ";
             if ((Modifiers & HotkeyModifiers.Shift) != 0) text += "Shift + ";
-            if ((Modifiers & HotkeyModifiers.Win) != 0) text += "Windows + ";
+            if ((Modifiers & HotkeyModifiers.Win) != 0) text += AppText.Get("Hotkey.Windows") + " + ";
             return text + FriendlyKeyName(Key);
         }
 
@@ -85,9 +86,9 @@ namespace QuickControls.Models
                 case Keys.Down: return "↓";
                 case Keys.Left: return "←";
                 case Keys.Right: return "→";
-                case Keys.Space: return "Space";
-                case Keys.PageUp: return "Page Up";
-                case Keys.PageDown: return "Page Down";
+                case Keys.Space: return AppText.Get("Hotkey.Space");
+                case Keys.PageUp: return AppText.Get("Hotkey.PageUp");
+                case Keys.PageDown: return AppText.Get("Hotkey.PageDown");
                 case Keys.Oemcomma: return ",";
                 case Keys.OemPeriod: return ".";
                 default: return key.ToString();

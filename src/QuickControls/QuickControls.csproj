@@ -40,6 +40,7 @@
     <Compile Include="Models\HotkeyBinding.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\AudioService.cs" />
+    <Compile Include="Services\AppText.cs" />
     <Compile Include="Services\BrightnessService.cs" />
     <Compile Include="Services\HotkeyManager.cs" />
     <Compile Include="Services\SettingsStore.cs" />
@@ -50,6 +51,7 @@
     <Compile Include="UI\ModernControls.cs" />
     <Compile Include="UI\OsdForm.cs" />
     <Compile Include="UI\PanelForm.cs" />
+    <Compile Include="UI\PanelPlacement.cs" />
     <Compile Include="UI\PreviewRenderer.cs" />
     <Compile Include="UI\SettingsForm.cs" />
   </ItemGroup>

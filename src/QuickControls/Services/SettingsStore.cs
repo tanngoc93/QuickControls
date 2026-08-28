@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Xml;
 using System.Xml.Serialization;
 using QuickControls.Models;
 
@@ -32,16 +33,21 @@ namespace QuickControls.Services
                     return AppSettings.CreateDefaults();
                 }
 
+                XmlDocument document = new XmlDocument();
+                document.Load(_filePath);
+                bool hasSettingsVersion = HasDirectChild(document.DocumentElement, "SettingsVersion");
+                bool hasPanelLayoutMode = HasDirectChild(document.DocumentElement, "PanelLayoutMode");
+
                 XmlSerializer serializer = new XmlSerializer(typeof(AppSettings));
-                using (FileStream stream = File.OpenRead(_filePath))
+                using (XmlNodeReader reader = new XmlNodeReader(document))
                 {
-                    AppSettings settings = serializer.Deserialize(stream) as AppSettings;
+                    AppSettings settings = serializer.Deserialize(reader) as AppSettings;
                     if (settings == null)
                     {
                         return AppSettings.CreateDefaults();
                     }
 
-                    Normalize(settings);
+                    Normalize(settings, hasSettingsVersion, hasPanelLayoutMode);
                     return settings;
                 }
             }
@@ -53,6 +59,8 @@ namespace QuickControls.Services
 
         public void Save(AppSettings settings)
         {
+            if (settings == null) throw new ArgumentNullException("settings");
+            Normalize(settings, true, true);
             Directory.CreateDirectory(_directoryPath);
             string temporaryPath = _filePath + ".tmp";
             try
@@ -96,9 +104,26 @@ namespace QuickControls.Services
             }
         }
 
-        private static void Normalize(AppSettings settings)
+        private static void Normalize(AppSettings settings, bool hasSettingsVersion, bool hasPanelLayoutMode)
         {
             AppSettings defaults = AppSettings.CreateDefaults();
+            bool shouldMigrateLegacyCompact = !hasSettingsVersion && !hasPanelLayoutMode && settings.PanelCompact;
+
+            if (!Enum.IsDefined(typeof(PanelLayoutMode), settings.PanelLayoutMode))
+            {
+                settings.PanelLayoutMode = PanelLayoutMode.Full;
+            }
+            if (shouldMigrateLegacyCompact)
+            {
+                settings.PanelLayoutMode = PanelLayoutMode.HorizontalMini;
+            }
+            if (!Enum.IsDefined(typeof(PanelDockEdge), settings.DockEdge))
+            {
+                settings.DockEdge = PanelDockEdge.Automatic;
+            }
+            settings.LanguageCode = NormalizeLanguageCode(settings.LanguageCode);
+            settings.SettingsVersion = AppSettings.CurrentSettingsVersion;
+
             if (settings.StepPercent != 2 && settings.StepPercent != 5 && settings.StepPercent != 10)
             {
                 settings.StepPercent = 5;
@@ -111,6 +136,25 @@ namespace QuickControls.Services
             if (settings.ToggleMute == null) settings.ToggleMute = defaults.ToggleMute;
             if (settings.TogglePanel == null) settings.TogglePanel = defaults.TogglePanel;
             if (settings.SelectedDisplayId == null) settings.SelectedDisplayId = string.Empty;
+        }
+
+        private static bool HasDirectChild(XmlElement parent, string localName)
+        {
+            if (parent == null) return false;
+            for (XmlNode node = parent.FirstChild; node != null; node = node.NextSibling)
+            {
+                if (node.NodeType == XmlNodeType.Element &&
+                    string.Equals(node.LocalName, localName, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private static string NormalizeLanguageCode(string value)
+        {
+            return AppText.NormalizeLanguageCode(value);
         }
     }
 }

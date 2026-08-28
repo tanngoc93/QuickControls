@@ -18,7 +18,10 @@ $portableOutput = Join-Path $artifactRoot 'QuickControls-Portable.zip'
 $iconOutput = Join-Path $artifactRoot 'QuickControls.ico'
 $previewOutput = Join-Path $artifactRoot 'QuickControls-Preview.png'
 $compactPreviewOutput = Join-Path $artifactRoot 'QuickControls-Compact-Preview.png'
+$verticalPreviewOutput = Join-Path $artifactRoot 'QuickControls-Vertical-Preview.png'
+$edgePreviewOutput = Join-Path $artifactRoot 'QuickControls-Edge-Preview.png'
 $settingsPreviewOutput = Join-Path $artifactRoot 'QuickControls-Settings-Preview.png'
+$shortcutsPreviewOutput = Join-Path $artifactRoot 'QuickControls-Shortcuts-Preview.png'
 
 $compilerCandidates = @(
     (Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'),
@@ -56,8 +59,8 @@ try {
     $iconBounds = [System.Drawing.Rectangle]::new(2, 2, 60, 60)
     $iconBrush = [System.Drawing.Drawing2D.LinearGradientBrush]::new(
         $iconBounds,
-        [System.Drawing.Color]::FromArgb(112, 78, 255),
-        [System.Drawing.Color]::FromArgb(47, 196, 222),
+        [System.Drawing.Color]::FromArgb(21, 94, 239),
+        [System.Drawing.Color]::FromArgb(46, 144, 250),
         45.0)
     try {
         $iconGraphics.FillEllipse($iconBrush, $iconBounds)
@@ -116,6 +119,7 @@ $appSources = Get-ChildItem -LiteralPath $sourceRoot -Filter '*.cs' -File -Recur
     ForEach-Object { $_.FullName }
 $appArguments = @(
     '/nologo',
+    '/codepage:65001',
     '/target:winexe',
     '/platform:anycpu',
     '/optimize+',
@@ -219,11 +223,28 @@ if (-not $SkipPreview) {
     $previewMethod.Invoke($null, $renderArguments) | Out-Null
     [object[]]$compactRenderArguments = @([string]$compactPreviewOutput, [bool]$true)
     $previewMethod.Invoke($null, $compactRenderArguments) | Out-Null
+    $layoutType = $applicationAssembly.GetType('QuickControls.Models.PanelLayoutMode', $true)
+    $layoutPreviewMethod = $previewType.GetMethod(
+        'RenderLayout',
+        [System.Reflection.BindingFlags]::Public -bor [System.Reflection.BindingFlags]::Static)
+    [object[]]$verticalRenderArguments = @(
+        [string]$verticalPreviewOutput,
+        [System.Enum]::Parse($layoutType, 'VerticalMini'))
+    $layoutPreviewMethod.Invoke($null, $verticalRenderArguments) | Out-Null
+    [object[]]$edgeRenderArguments = @(
+        [string]$edgePreviewOutput,
+        [System.Enum]::Parse($layoutType, 'EdgeDock'))
+    $layoutPreviewMethod.Invoke($null, $edgeRenderArguments) | Out-Null
     $settingsPreviewMethod = $previewType.GetMethod(
         'RenderSettings',
         [System.Reflection.BindingFlags]::Public -bor [System.Reflection.BindingFlags]::Static)
     [object[]]$settingsRenderArguments = @([string]$settingsPreviewOutput)
     $settingsPreviewMethod.Invoke($null, $settingsRenderArguments) | Out-Null
+    $settingsPagePreviewMethod = $previewType.GetMethod(
+        'RenderSettingsPage',
+        [System.Reflection.BindingFlags]::Public -bor [System.Reflection.BindingFlags]::Static)
+    [object[]]$shortcutsRenderArguments = @([string]$shortcutsPreviewOutput, [string]'Shortcuts', [string]'en')
+    $settingsPagePreviewMethod.Invoke($null, $shortcutsRenderArguments) | Out-Null
 
 }
 
@@ -236,7 +257,10 @@ Write-Host "Portable:    $portableOutput"
 if (-not $SkipPreview) {
     Write-Host "Preview:     $previewOutput"
     Write-Host "Compact UI:  $compactPreviewOutput"
+    Write-Host "Vertical UI: $verticalPreviewOutput"
+    Write-Host "Edge UI:     $edgePreviewOutput"
     Write-Host "Settings UI: $settingsPreviewOutput"
+    Write-Host "Shortcuts UI:$shortcutsPreviewOutput"
 }
 Write-Host "Setup SHA256: $setupHash"
 if ($null -ne $signingCertificate) { Write-Host "Signed by:    $($signingCertificate.Subject)" }

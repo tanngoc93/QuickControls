@@ -23,7 +23,16 @@ The build creates these generated files under `artifacts`:
 - `QuickControls-Setup.exe`, the one-click per-user installer.
 - `QuickControls-Portable.zip`.
 - The application icon.
-- Main-panel, compact-panel, and Settings UI previews.
+- Full-panel, Horizontal Mini, Vertical Mini, Edge Dock, and redesigned Settings UI previews.
+
+The preview files include:
+
+- `QuickControls-Preview.png` — Full panel.
+- `QuickControls-Compact-Preview.png` — Horizontal Mini.
+- `QuickControls-Vertical-Preview.png` — Vertical Mini.
+- `QuickControls-Edge-Preview.png` — Edge Dock.
+- `QuickControls-Settings-Preview.png` — Interface page with the direct `2 x 2` layout tiles.
+- `QuickControls-Shortcuts-Preview.png` — Keyboard shortcuts page with keycap fields.
 
 Use `-SkipPreview` when preview images are not needed:
 
@@ -37,13 +46,19 @@ powershell -ExecutionPolicy Bypass -File .\scripts\build.ps1 -SkipPreview
 powershell -ExecutionPolicy Bypass -File .\scripts\test.ps1
 ```
 
-The check validates required artifact sizes, loads the application assembly, renders all three UI states, verifies expected image dimensions, checks the installer executable header, and reports Authenticode signature status.
+The check validates required artifact sizes, loads the application assembly, renders all four panel layouts and the redesigned Settings pages, verifies expected image dimensions, validates the five-language text catalog, checks the installer executable header, and reports Authenticode signature status. It also renders localized Interface, Keyboard shortcuts, General, and Full-panel previews for English, Vietnamese, Japanese, Simplified Chinese, and French to catch clipping and missing-font regressions.
 
 Use `-RequireSigned` for a release build that must have valid signatures:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\test.ps1 -RequireSigned
 ```
+
+## Verify localization changes
+
+All runtime strings are compiled into `src\QuickControls\Services\AppText.cs`. When a text key or translation changes, run the complete test script. `AppText.ValidateCatalog()` requires every supported language to contain the same keys as English and to preserve numbered format placeholders such as `{0}`.
+
+Review the generated localized previews as well as the automated result. A catalog can be structurally valid while a translation is still too long for a control or unclear in context. See the [Quick Controls localization guide](LOCALIZATION.md) for language codes, translation rules, font fallbacks, and the checklist for adding a language.
 
 ## Check hardware integration
 

@@ -43,6 +43,8 @@ namespace QuickControls
         {
             _settingsStore = new SettingsStore();
             _settings = _settingsStore.Load();
+            _settings.LanguageCode = AppText.NormalizeLanguageCode(_settings.LanguageCode);
+            AppText.SetLanguage(_settings.LanguageCode);
 
             bool firstRun = _settings.FirstRun;
             bool startupInitializationFailed = false;
@@ -66,6 +68,7 @@ namespace QuickControls
             _panel.EnsureMessageHandle();
             _osd = new OsdForm();
             _trayService = new TrayService(StartupService.IsEnabled());
+            _trayService.SetLayoutChecked(_settings.PanelLayoutMode);
 
             _placementSaveTimer = new System.Windows.Forms.Timer();
             _placementSaveTimer.Interval = 350;
@@ -111,26 +114,30 @@ namespace QuickControls
 
             if (!startInBackground)
             {
-                _panel.ShowExpanded();
+                _panel.ShowPreferred();
+            }
+            else if (_settings.PanelLayoutMode == PanelLayoutMode.EdgeDock)
+            {
+                _panel.ShowPreferredPassive();
             }
 
             if (hotkeyFailures.Count > 0)
             {
                 _trayService.ShowInfo(
-                    "Some shortcuts aren't available",
-                    "A shortcut is already in use by another app. Open Settings to change it.");
+                    AppText.Get("Notification.ShortcutsUnavailable.Title"),
+                    AppText.Get("Notification.ShortcutsUnavailable.Message"));
             }
             else if (startupInitializationFailed)
             {
                 _trayService.ShowInfo(
-                    "Couldn't enable Start with Windows",
-                    "The app will still work normally. You can try again in Settings.");
+                    AppText.Get("Notification.StartupFailed.Title"),
+                    AppText.Get("Notification.StartupFailed.Message"));
             }
             else if (firstRun && !startInBackground)
             {
                 _trayService.ShowInfo(
-                    "Ready",
-                    "Use a shortcut or click the icon near the clock to open the control panel.");
+                    AppText.Get("Notification.Ready.Title"),
+                    AppText.Get("Notification.Ready.Message"));
             }
         }
 
@@ -161,6 +168,11 @@ namespace QuickControls
             _trayService.AboutRequested += delegate { ShowAbout(); };
             _trayService.ExitRequested += delegate { ExitApplication(true); };
             _trayService.StartupToggleRequested += TrayStartupToggleRequested;
+            _trayService.LayoutRequested += delegate(object sender, PanelLayoutEventArgs args)
+            {
+                _panel.SetLayoutMode(args.Mode, true);
+                QueuePanelPlacementSave();
+            };
         }
 
         private IList<HotkeyAction> RegisterInitialHotkeys(bool firstRun)
@@ -209,7 +221,7 @@ namespace QuickControls
             {
                 _audioState = new AudioState(true, clamped, false);
                 _panel.SetAudioState(_audioState);
-                if (showOsd) _osd.ShowValue("Volume", clamped, false);
+                if (showOsd) _osd.ShowValue(AppText.Get("Osd.Volume"), clamped, false);
             }
             else
             {
@@ -245,7 +257,7 @@ namespace QuickControls
             _pendingBrightnessShowOsd = showOsd;
             _brightnessValue = _pendingBrightness.Value;
             _panel.SetBrightnessState(true, _brightnessValue, string.Empty);
-            if (showOsd) _osd.ShowValue("Brightness", _brightnessValue, true);
+            if (showOsd) _osd.ShowValue(AppText.Get("Osd.Brightness"), _brightnessValue, true);
             _brightnessDebounceTimer.Stop();
             _brightnessDebounceTimer.Interval = showOsd ? 60 : 170;
             _brightnessDebounceTimer.Start();
@@ -278,7 +290,7 @@ namespace QuickControls
 
             _brightnessValue = Clamp(_brightnessValue + change);
             _panel.SetBrightnessState(true, _brightnessValue, string.Empty);
-            if (showOsd) _osd.ShowValue("Brightness", _brightnessValue, true);
+            if (showOsd) _osd.ShowValue(AppText.Get("Osd.Brightness"), _brightnessValue, true);
 
             if (!HasPendingBrightness)
             {
@@ -348,7 +360,7 @@ namespace QuickControls
                         {
                             _brightnessValue = target;
                             _panel.SetBrightnessState(true, target, string.Empty);
-                            if (showOsd) _osd.ShowValue("Brightness", target, true);
+                            if (showOsd) _osd.ShowValue(AppText.Get("Osd.Brightness"), target, true);
                         }
                         if (!success) RefreshBrightness();
                         if (HasPendingBrightness)
@@ -425,7 +437,7 @@ namespace QuickControls
                         }
                         else if (canApply)
                         {
-                            _panel.SetBrightnessState(false, 0, "The app can't adjust this display's brightness.");
+                            _panel.SetBrightnessState(false, 0, AppText.Get("Panel.DisplayUnsupported"));
                         }
 
                         ContinueDeferredBrightnessWork();
@@ -481,7 +493,7 @@ namespace QuickControls
                         _panel.BeginInvoke(new Action(delegate
                         {
                             _displayRefreshInProgress = false;
-                            _panel.SetBrightnessState(false, 0, "No displays found. Click Try again.");
+                            _panel.SetBrightnessState(false, 0, AppText.Get("Panel.NoDisplays"));
                         }));
                     }
                     catch
@@ -559,24 +571,40 @@ namespace QuickControls
         private string ApplySettings(AppSettings candidate)
         {
             AppSettings previous = _settings.Clone();
+            bool languageChanged = !string.Equals(
+                AppText.NormalizeLanguageCode(previous.LanguageCode),
+                AppText.NormalizeLanguageCode(candidate.LanguageCode),
+                StringComparison.OrdinalIgnoreCase);
+            bool displaySelectionChanged = !string.Equals(
+                previous.SelectedDisplayId,
+                candidate.SelectedDisplayId,
+                StringComparison.Ordinal);
+            bool resetPanelPosition = candidate.PanelLeft == -1D && candidate.PanelTop == -1D;
             bool previousStartupEnabled = StartupService.IsEnabled();
             IList<HotkeyAction> failures = _hotkeyManager.RegisterAll(candidate);
             if (failures.Count > 0)
             {
                 _hotkeyManager.RegisterAll(previous);
-                return "The shortcut for " + FriendlyActionName(failures[0]) + " is already in use by another app.";
+                return AppText.Format("Error.ShortcutInUse", FriendlyActionName(failures[0]));
             }
 
             if (!StartupService.SetEnabled(candidate.StartWithWindows))
             {
                 _hotkeyManager.RegisterAll(previous);
-                return "Windows didn't allow changes to the startup entry.";
+                return AppText.Get("Error.StartupNotAllowed");
             }
 
             candidate.FirstRun = false;
-            candidate.PanelLeft = _panel.Left;
-            candidate.PanelTop = _panel.Top;
-            candidate.PanelCompact = _panel.IsCompact;
+            candidate.LanguageCode = AppText.NormalizeLanguageCode(candidate.LanguageCode);
+            if (!resetPanelPosition)
+            {
+                System.Drawing.Point savedLocation = _panel.GetSavedLocationFor(
+                    candidate.PanelLayoutMode, candidate.DockEdge);
+                candidate.PanelLeft = savedLocation.X;
+                candidate.PanelTop = savedLocation.Y;
+            }
+            candidate.PanelCompact = candidate.PanelLayoutMode == PanelLayoutMode.HorizontalMini;
+            candidate.SettingsVersion = AppSettings.CurrentSettingsVersion;
             try
             {
                 _settingsStore.Save(candidate);
@@ -585,11 +613,18 @@ namespace QuickControls
             {
                 _hotkeyManager.RegisterAll(previous);
                 StartupService.SetEnabled(previousStartupEnabled);
-                return "Couldn't save settings. Check your available disk space, then try again.";
+                return AppText.Get("Error.SaveSettings");
             }
             _settings = candidate;
+            AppText.SetLanguage(_settings.LanguageCode);
             _panel.ApplySettings(_settings);
+            if (resetPanelPosition) _panel.ResetPosition();
+            _osd.ApplyLanguage();
+            _trayService.ApplyLanguage();
             _trayService.SetStartupChecked(_settings.StartWithWindows);
+            RefreshAudio();
+            if (languageChanged || displaySelectionChanged) RefreshDisplayDevices();
+            else RefreshBrightness();
             return null;
         }
 
@@ -610,22 +645,30 @@ namespace QuickControls
                     _settings.StartWithWindows = previousValue;
                     StartupService.SetEnabled(previousStartupEnabled);
                     _trayService.SetStartupChecked(previousStartupEnabled);
-                    _trayService.ShowInfo("Couldn't save", "The Start with Windows setting wasn't changed.");
+                    _trayService.ShowInfo(
+                        AppText.Get("Notification.SaveFailed.Title"),
+                        AppText.Get("Notification.SaveFailed.Message"));
                 }
             }
             else
             {
                 _trayService.SetStartupChecked(StartupService.IsEnabled());
-                _trayService.ShowInfo("Couldn't make the change", "Windows didn't allow changes to the startup entry.");
+                _trayService.ShowInfo(
+                    AppText.Get("Notification.StartupChangeFailed.Title"),
+                    AppText.Get("Notification.StartupChangeFailed.Message"));
             }
         }
 
         private void SavePanelPlacement()
         {
             if (_settings == null || _panel == null) return;
-            _settings.PanelLeft = _panel.Left;
-            _settings.PanelTop = _panel.Top;
-            _settings.PanelCompact = _panel.IsCompact;
+            System.Drawing.Point savedLocation = _panel.GetSavedLocationFor(
+                _panel.PreferredLayout, _settings.DockEdge);
+            _settings.PanelLeft = savedLocation.X;
+            _settings.PanelTop = savedLocation.Y;
+            _settings.PanelLayoutMode = _panel.PreferredLayout;
+            _settings.PanelCompact = _panel.PreferredLayout == PanelLayoutMode.HorizontalMini;
+            _trayService.SetLayoutChecked(_settings.PanelLayoutMode);
             try { _settingsStore.Save(_settings); }
             catch { }
         }
@@ -654,7 +697,7 @@ namespace QuickControls
         {
             try
             {
-                _panel.BeginInvoke(new Action(delegate { _panel.ShowExpanded(); }));
+                _panel.BeginInvoke(new Action(delegate { _panel.ShowPreferred(); }));
             }
             catch
             {
@@ -674,7 +717,11 @@ namespace QuickControls
 
         private void SystemDisplaySettingsChanged(object sender, EventArgs eventArgs)
         {
-            ShowOnUiThread(RefreshDisplayDevices);
+            ShowOnUiThread(delegate
+            {
+                _panel.HandleDisplayConfigurationChanged();
+                RefreshDisplayDevices();
+            });
         }
 
         private void SystemPowerModeChanged(object sender, PowerModeChangedEventArgs eventArgs)
@@ -694,8 +741,8 @@ namespace QuickControls
             if (askForConfirmation)
             {
                 DialogResult answer = MessageBox.Show(
-                    "Exit the app?\r\n\r\nVolume and brightness shortcuts will stop working.",
-                    "Quick Controls",
+                    AppText.Get("Exit.Confirmation"),
+                    AppText.Get("Exit.Title"),
                     MessageBoxButtons.YesNo,
                     MessageBoxIcon.Question,
                     MessageBoxDefaultButton.Button2);
@@ -725,12 +772,12 @@ namespace QuickControls
         {
             switch (action)
             {
-                case HotkeyAction.VolumeUp: return "volume up";
-                case HotkeyAction.VolumeDown: return "volume down";
-                case HotkeyAction.BrightnessUp: return "brightness up";
-                case HotkeyAction.BrightnessDown: return "brightness down";
-                case HotkeyAction.ToggleMute: return "mute / unmute";
-                default: return "show / hide panel";
+                case HotkeyAction.VolumeUp: return AppText.Get("Action.IncreaseVolume");
+                case HotkeyAction.VolumeDown: return AppText.Get("Action.DecreaseVolume");
+                case HotkeyAction.BrightnessUp: return AppText.Get("Action.IncreaseBrightness");
+                case HotkeyAction.BrightnessDown: return AppText.Get("Action.DecreaseBrightness");
+                case HotkeyAction.ToggleMute: return AppText.Get("Action.ToggleMute");
+                default: return AppText.Get("Action.TogglePanel");
             }
         }
 

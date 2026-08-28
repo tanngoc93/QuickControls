@@ -5,19 +5,21 @@
 ![C# WinForms](https://img.shields.io/badge/C%23-WinForms-512BD4?logo=dotnet&logoColor=white)
 ![.NET Framework 4.0](https://img.shields.io/badge/.NET%20Framework-4.0-512BD4)
 
-**Quick Controls** is a lightweight Windows 10 and Windows 11 utility that adds customizable global keyboard shortcuts and a floating control panel for system volume, mute, laptop brightness, and compatible external monitor brightness. It is designed for keyboards without media keys and for anyone who wants faster controls without repeatedly opening Windows Settings.
+**Quick Controls** is a lightweight Windows 10 and Windows 11 utility that adds customizable global keyboard shortcuts and a sharp, modern control panel for system volume, mute, laptop brightness, and compatible external monitor brightness. It is built for keyboards without media keys and for everyday Windows users who want faster controls without digging through Windows Settings. Its redesigned Settings window keeps setup approachable with a flat dark sidebar, visual panel-layout tiles, keycap-style shortcut capture, and familiar on/off toggles.
 
 <p align="center">
-  <img src="docs/images/quick-controls-windows-volume-brightness-panel.png" alt="Quick Controls floating Windows volume and brightness control panel" width="420">
+  <img src="docs/images/quick-controls-windows-volume-brightness-panel.png" alt="Quick Controls floating Windows volume and brightness control panel" width="440">
 </p>
 
 <p align="center">
-  <a href="https://github.com/tanngoc93/QuickControls/releases/latest/download/QuickControls-Setup.exe"><strong>Download the Windows installer</strong></a>
+  <a href="https://github.com/tanngoc93/QuickControls/releases/latest"><strong>Download the latest stable Windows release</strong></a>
   ·
   <a href="docs/USER-GUIDE.md">User guide</a>
   ·
   <a href="docs/TROUBLESHOOTING.md">Troubleshooting</a>
 </p>
+
+The screenshots and feature list below describe the current `main` branch. Check the selected release notes before downloading a versioned installer; changes listed under [Unreleased](CHANGELOG.md#unreleased) ship with the next release.
 
 ## The problem
 
@@ -25,9 +27,9 @@ Many compact, mechanical, and office keyboards do not have dedicated volume or b
 
 ## The solution
 
-Quick Controls places six global hotkeys and a clean, movable panel within easy reach. It controls the default Windows audio output, built-in display brightness through Windows WMI, and compatible external monitor brightness through DDC/CI.
+Quick Controls places six global hotkeys and a clear, high-contrast panel within easy reach. It controls the default Windows audio output, built-in display brightness through Windows WMI, and compatible external monitor brightness through DDC/CI.
 
-Install it once, then use your keyboard or the on-screen panel. There are no configuration files to edit and no commands for an end user to run.
+Install it once, then use your keyboard, the on-screen panel, or the system tray. There are no configuration files to edit and no commands for an end user to run.
 
 ## Features
 
@@ -36,8 +38,15 @@ Install it once, then use your keyboard or the on-screen panel. There are no con
 - Adjust laptop and all-in-one display brightness through Windows WMI.
 - Adjust compatible external monitor brightness through DDC/CI.
 - Choose between multiple detected brightness-capable displays.
-- Use an expanded floating panel or a compact `336 x 64` control bar.
-- Keep the panel above other windows or let it compact automatically.
+- Choose a Full, Horizontal Mini, Vertical Mini, or left/right Edge Dock layout.
+- Keep an unobtrusive Edge Dock tab at the side of the screen without changing the Windows work area.
+- Switch the app interface between English, Vietnamese, Japanese, Simplified Chinese, and French.
+- Use a crisp, high-contrast interface with compact corners and clear focus states.
+- Navigate a redesigned Settings window with a custom title bar and flat dark sidebar.
+- Select any of the four panel modes directly from a visual `2 x 2` tile grid.
+- Record global shortcuts in a focused field and confirm the combination as readable keycaps.
+- Change startup and panel behavior with modern toggle rows instead of technical checkboxes.
+- Keep the panel above other windows or let it return to a mini layout automatically.
 - Choose a `2%`, `5%`, or `10%` adjustment step.
 - See on-screen volume and brightness feedback after hotkey actions.
 - Run quietly from the system tray and optionally start with Windows.
@@ -46,13 +55,18 @@ Install it once, then use your keyboard or the on-screen panel. There are no con
 
 ## Screenshots
 
-| Compact volume and brightness panel | Keyboard shortcut settings |
+| View | Preview |
 | --- | --- |
-| ![Compact Quick Controls Windows volume and brightness panel](docs/images/quick-controls-compact-panel.png) | ![Quick Controls custom volume and brightness keyboard shortcut settings](docs/images/quick-controls-keyboard-shortcuts-settings.png) |
+| Full Windows volume and brightness panel | ![Full Quick Controls Windows volume and brightness panel](docs/images/quick-controls-windows-volume-brightness-panel.png) |
+| Horizontal Mini panel | ![Horizontal Mini Quick Controls volume and brightness panel](docs/images/quick-controls-compact-panel.png) |
+| Vertical Mini panel | ![Vertical Mini Quick Controls volume and brightness panel](docs/images/quick-controls-vertical-mini-panel.png) |
+| Left or right Edge Dock | ![Quick Controls Windows volume and brightness Edge Dock panel](docs/images/quick-controls-edge-dock-panel.png) |
+| Language and panel layout settings | ![Quick Controls language and panel layout settings](docs/images/quick-controls-language-panel-layout-settings.png) |
+| Keyboard shortcut settings | ![Quick Controls keyboard shortcut settings](docs/images/quick-controls-keyboard-shortcuts-settings.png) |
 
 ## Install Quick Controls
 
-1. [Download `QuickControls-Setup.exe`](https://github.com/tanngoc93/QuickControls/releases/latest/download/QuickControls-Setup.exe).
+1. Open the [latest stable release](https://github.com/tanngoc93/QuickControls/releases/latest) and download `QuickControls-Setup.exe`.
 2. Open the downloaded file.
 3. Select **Install now**.
 4. Use the panel or the default shortcuts immediately.
@@ -81,7 +95,44 @@ Volume features still work when monitor brightness control is unavailable.
 | `Ctrl + Alt + M` | Mute or unmute |
 | `Ctrl + Alt + Space` | Show or hide the control panel |
 
-The shortcuts work while another normal desktop app is focused. If a combination is already used, open **Settings**, select its shortcut field, press a new combination, and select **Save changes**.
+The shortcuts work while another normal desktop app is focused. If a combination is already used, open **Settings > Keyboard shortcuts**, select its shortcut field, and press a new combination. The field displays each key as a separate keycap so the result is easy to check before selecting **Save changes**.
+
+## Choose your language
+
+Quick Controls includes runtime interface translations for:
+
+- English
+- Vietnamese
+- Japanese
+- Simplified Chinese
+- French
+
+Open **Settings > Interface**, choose **Language**, and select **Save changes**. The panel, Settings, system tray menu, notifications, and on-screen feedback switch to the selected language, and Quick Controls remembers the choice.
+
+## Choose a panel layout
+
+Open **Settings > Interface** and select one of the four visual tiles under **Panel layout**:
+
+- **Full panel:** complete sliders, display selection, and settings access.
+- **Horizontal Mini:** a low control bar that fits above the taskbar or below another window.
+- **Vertical Mini:** a narrow stack that works well beside a window or on a portrait display.
+- **Edge Dock:** a slim tab attached to the left or right edge. Select it to open quick controls, then expand to the Full panel when needed.
+
+The tiles form a direct `2 x 2` selector, so no layout menu needs to be opened. Select **Save changes** to apply the chosen mode. With **Dock edge** set to **Automatic**, Quick Controls uses the nearest left or right edge. You can also choose an edge explicitly. Edge Dock is a safe overlay: it does not replace the Windows taskbar, modify the shell, or reserve desktop work area. Other windows can extend behind it. Hide the tab from the panel itself, then reopen it from the system tray whenever you need it.
+
+## Configure the redesigned Settings window
+
+The current `main` branch replaces the native-looking settings dialog with a code-native Windows utility interface:
+
+- A custom title bar keeps the product identity and close action in one compact row. Drag the title bar to move the window.
+- A flat dark sidebar separates **Interface**, **Keyboard shortcuts**, and **General** without putting every option on one long page.
+- The **Interface** page contains the five-language selector and four direct panel-layout tiles.
+- The **Keyboard shortcuts** page captures a key combination and renders it as individual keycaps.
+- The **General** page uses modern toggle rows for startup, always-on-top, and automatic mini mode.
+
+All controls keep keyboard focus states and accessible names. These Settings changes are currently listed under [Unreleased](CHANGELOG.md#unreleased); consult the chosen GitHub release notes before assuming they are included in a stable installer.
+
+You can also change the layout immediately from the layout button in the Full panel or from **Panel layout** in the system tray menu. If automatic mini mode is enabled, Full returns to Horizontal Mini after you stop using it; the other layouts return to the layout you selected.
 
 ## External monitor brightness control
 
@@ -136,6 +187,7 @@ See [Building from source](docs/BUILDING.md) for signing, hardware-write verific
 - [Troubleshooting](docs/TROUBLESHOOTING.md) — shortcut conflicts, unavailable devices, SmartScreen, and installer errors.
 - [Building from source](docs/BUILDING.md) — build, test, hardware verification, and code signing.
 - [Architecture](docs/ARCHITECTURE.md) — Windows APIs, runtime components, local settings, and installer design.
+- [Localization](docs/LOCALIZATION.md) — supported languages, runtime text catalogs, translation rules, and localization testing.
 - [Changelog](CHANGELOG.md) — user-facing changes by release.
 - [Quick Controls 1.0.0 release notes](docs/releases/v1.0.0.md) — downloads, features, checksums, and the signing notice.
 - [Contributing](CONTRIBUTING.md) — project conventions, verification, and bug-report details.
@@ -148,7 +200,7 @@ Install Quick Controls and use `Ctrl + Alt + Up` or `Ctrl + Alt + Down`. You can
 
 ### Can I create custom volume and brightness keyboard shortcuts?
 
-Yes. Open **Settings**, select any shortcut field, and press the key combination you want. Each shortcut must include `Ctrl`, `Alt`, `Shift`, or the Windows key.
+Yes. Open **Settings > Keyboard shortcuts**, select the field for an action, and press the key combination you want. The result appears as keycaps. Each shortcut must include `Ctrl`, `Alt`, `Shift`, or the Windows key.
 
 ### Do the shortcuts work while another app is open?
 
@@ -161,6 +213,14 @@ Yes, when the monitor and connection expose DDC/CI brightness control. Enable DD
 ### Can I choose which monitor to control?
 
 Yes. When multiple compatible displays are detected, choose one from the Brightness card. Quick Controls remembers the selected display.
+
+### Which interface languages are available?
+
+English, Vietnamese, Japanese, Simplified Chinese, and French. Change the language under **Settings > Interface**, then select **Save changes**.
+
+### Can I keep a small volume and brightness control at the side of the screen?
+
+Yes. Choose **Edge Dock** and select **Automatic**, **Left**, or **Right** for the dock edge. The edge tab overlays the desktop without reserving work area. Hide it from the tab or panel and reopen it from the system tray at any time.
 
 ### Does Quick Controls start with Windows?
 

@@ -12,7 +12,11 @@ $configPath = Join-Path $artifactRoot 'QuickControls.exe.config'
 $setupPath = Join-Path $artifactRoot 'QuickControls-Setup.exe'
 $previewPath = Join-Path $artifactRoot 'QuickControls-Preview.png'
 $compactPreviewPath = Join-Path $artifactRoot 'QuickControls-Compact-Preview.png'
+$verticalPreviewPath = Join-Path $artifactRoot 'QuickControls-Vertical-Preview.png'
+$edgePreviewPath = Join-Path $artifactRoot 'QuickControls-Edge-Preview.png'
 $settingsPreviewPath = Join-Path $artifactRoot 'QuickControls-Settings-Preview.png'
+$shortcutsPreviewPath = Join-Path $artifactRoot 'QuickControls-Shortcuts-Preview.png'
+$frenchPreviewPath = Join-Path $artifactRoot 'QuickControls-Settings-French-Preview.png'
 
 $requiredArtifactsExist =
     (Test-Path -LiteralPath $appPath -PathType Leaf) -and
@@ -60,17 +64,100 @@ $previewMethod = $previewType.GetMethod(
 $previewMethod.Invoke($null, $renderArguments) | Out-Null
 [object[]]$compactRenderArguments = @([string]$compactPreviewPath, [bool]$true)
 $previewMethod.Invoke($null, $compactRenderArguments) | Out-Null
+$layoutType = $applicationAssembly.GetType('QuickControls.Models.PanelLayoutMode', $true)
+$layoutPreviewMethod = $previewType.GetMethod(
+    'RenderLayout',
+    [System.Reflection.BindingFlags]::Public -bor [System.Reflection.BindingFlags]::Static)
+[object[]]$verticalRenderArguments = @(
+    [string]$verticalPreviewPath,
+    [System.Enum]::Parse($layoutType, 'VerticalMini'))
+$layoutPreviewMethod.Invoke($null, $verticalRenderArguments) | Out-Null
+[object[]]$edgeRenderArguments = @(
+    [string]$edgePreviewPath,
+    [System.Enum]::Parse($layoutType, 'EdgeDock'))
+$layoutPreviewMethod.Invoke($null, $edgeRenderArguments) | Out-Null
 $settingsPreviewMethod = $previewType.GetMethod(
     'RenderSettings',
     [System.Reflection.BindingFlags]::Public -bor [System.Reflection.BindingFlags]::Static)
 [object[]]$settingsRenderArguments = @([string]$settingsPreviewPath)
 $settingsPreviewMethod.Invoke($null, $settingsRenderArguments) | Out-Null
+$settingsPagePreviewMethod = $previewType.GetMethod(
+    'RenderSettingsPage',
+    [System.Reflection.BindingFlags]::Public -bor [System.Reflection.BindingFlags]::Static)
+[object[]]$shortcutsRenderArguments = @([string]$shortcutsPreviewPath, [string]'Shortcuts', [string]'en')
+$settingsPagePreviewMethod.Invoke($null, $shortcutsRenderArguments) | Out-Null
+[object[]]$frenchRenderArguments = @([string]$frenchPreviewPath, [string]'Interface', [string]'fr')
+$settingsPagePreviewMethod.Invoke($null, $frenchRenderArguments) | Out-Null
+
+$layoutLanguagePreviewMethod = $previewType.GetMethod(
+    'RenderLayoutLanguage',
+    [System.Reflection.BindingFlags]::Public -bor [System.Reflection.BindingFlags]::Static)
+$fullLayout = [System.Enum]::Parse($layoutType, 'Full')
+$localizedPreviews = @()
+foreach ($languageCode in @('en', 'vi', 'ja', 'zh-CN', 'fr')) {
+    $safeLanguageCode = $languageCode.Replace('-', '_')
+    $interfacePath = Join-Path $artifactRoot "QuickControls-Settings-Interface-$safeLanguageCode-Preview.png"
+    [object[]]$interfaceArguments = @([string]$interfacePath, [string]'Interface', [string]$languageCode)
+    $settingsPagePreviewMethod.Invoke($null, $interfaceArguments) | Out-Null
+    $localizedPreviews += [pscustomobject]@{ Path = $interfacePath; Width = 900; Height = 640 }
+
+    $shortcutLanguagePath = Join-Path $artifactRoot "QuickControls-Settings-Shortcuts-$safeLanguageCode-Preview.png"
+    [object[]]$shortcutLanguageArguments = @([string]$shortcutLanguagePath, [string]'Shortcuts', [string]$languageCode)
+    $settingsPagePreviewMethod.Invoke($null, $shortcutLanguageArguments) | Out-Null
+    $localizedPreviews += [pscustomobject]@{ Path = $shortcutLanguagePath; Width = 900; Height = 640 }
+
+    $generalPath = Join-Path $artifactRoot "QuickControls-Settings-General-$safeLanguageCode-Preview.png"
+    [object[]]$generalArguments = @([string]$generalPath, [string]'General', [string]$languageCode)
+    $settingsPagePreviewMethod.Invoke($null, $generalArguments) | Out-Null
+    $localizedPreviews += [pscustomobject]@{ Path = $generalPath; Width = 900; Height = 640 }
+
+    $panelPath = Join-Path $artifactRoot "QuickControls-Full-$safeLanguageCode-Preview.png"
+    [object[]]$panelArguments = @([string]$panelPath, $fullLayout, [string]$languageCode)
+    $layoutLanguagePreviewMethod.Invoke($null, $panelArguments) | Out-Null
+    $localizedPreviews += [pscustomobject]@{ Path = $panelPath; Width = 440; Height = 456 }
+}
+
+$appTextType = $applicationAssembly.GetType('QuickControls.Services.AppText', $true)
+$validateCatalogMethod = $appTextType.GetMethod(
+    'ValidateCatalog',
+    [System.Reflection.BindingFlags]::Public -bor [System.Reflection.BindingFlags]::Static)
+$validateCatalogMethod.Invoke($null, @()) | Out-Null
+$languageOptionsProperty = $appTextType.GetProperty(
+    'LanguageOptions',
+    [System.Reflection.BindingFlags]::Public -bor [System.Reflection.BindingFlags]::Static)
+$languageOptions = $languageOptionsProperty.GetValue($null, $null)
+if ($languageOptions.Count -ne 5) {
+    throw "Expected 5 supported languages, found $($languageOptions.Count)."
+}
+
+$trayType = $applicationAssembly.GetType('QuickControls.Services.TrayService', $true)
+$trayService = [System.Activator]::CreateInstance($trayType, @([bool]$false))
+try {
+    $trayType.GetMethod('ApplyLanguage').Invoke($trayService, @()) | Out-Null
+}
+finally {
+    if ($null -ne $trayService) {
+        $trayType.GetMethod('Dispose').Invoke($trayService, @()) | Out-Null
+    }
+}
 
 
 Add-Type -AssemblyName System.Drawing
+$localizedPreviews | ForEach-Object {
+    $localizedImage = [System.Drawing.Image]::FromFile($_.Path)
+    try {
+        if ($localizedImage.Width -lt $_.Width -or $localizedImage.Height -lt $_.Height) {
+            throw "Unexpected localized preview dimensions: $($_.Path) ($($localizedImage.Width)x$($localizedImage.Height))."
+        }
+    }
+    finally {
+        $localizedImage.Dispose()
+    }
+}
+
 $image = [System.Drawing.Image]::FromFile($previewPath)
 try {
-    if ($image.Width -ne 420 -or $image.Height -ne 452) {
+    if ($image.Width -ne 440 -or $image.Height -ne 456) {
         throw "Unexpected preview dimensions: $($image.Width)x$($image.Height)."
     }
 }
@@ -80,7 +167,7 @@ finally {
 
 $compactImage = [System.Drawing.Image]::FromFile($compactPreviewPath)
 try {
-    if ($compactImage.Width -ne 336 -or $compactImage.Height -ne 64) {
+    if ($compactImage.Width -ne 520 -or $compactImage.Height -ne 72) {
         throw "Unexpected compact preview dimensions: $($compactImage.Width)x$($compactImage.Height)."
     }
 }
@@ -88,14 +175,54 @@ finally {
     $compactImage.Dispose()
 }
 
+$verticalImage = [System.Drawing.Image]::FromFile($verticalPreviewPath)
+try {
+    if ($verticalImage.Width -ne 136 -or $verticalImage.Height -ne 360) {
+        throw "Unexpected vertical preview dimensions: $($verticalImage.Width)x$($verticalImage.Height)."
+    }
+}
+finally {
+    $verticalImage.Dispose()
+}
+
+$edgeImage = [System.Drawing.Image]::FromFile($edgePreviewPath)
+try {
+    if ($edgeImage.Width -ne 48 -or $edgeImage.Height -ne 232) {
+        throw "Unexpected edge preview dimensions: $($edgeImage.Width)x$($edgeImage.Height)."
+    }
+}
+finally {
+    $edgeImage.Dispose()
+}
+
 $settingsImage = [System.Drawing.Image]::FromFile($settingsPreviewPath)
 try {
-    if ($settingsImage.Width -lt 620 -or $settingsImage.Height -lt 650) {
+    if ($settingsImage.Width -ne 900 -or $settingsImage.Height -ne 640) {
         throw "Unexpected settings preview dimensions: $($settingsImage.Width)x$($settingsImage.Height)."
     }
 }
 finally {
     $settingsImage.Dispose()
+}
+
+$shortcutsImage = [System.Drawing.Image]::FromFile($shortcutsPreviewPath)
+try {
+    if ($shortcutsImage.Width -ne 900 -or $shortcutsImage.Height -ne 640) {
+        throw "Unexpected shortcuts preview dimensions: $($shortcutsImage.Width)x$($shortcutsImage.Height)."
+    }
+}
+finally {
+    $shortcutsImage.Dispose()
+}
+
+$frenchImage = [System.Drawing.Image]::FromFile($frenchPreviewPath)
+try {
+    if ($frenchImage.Width -ne 900 -or $frenchImage.Height -ne 640) {
+        throw "Unexpected French settings preview dimensions: $($frenchImage.Width)x$($frenchImage.Height)."
+    }
+}
+finally {
+    $frenchImage.Dispose()
 }
 
 
