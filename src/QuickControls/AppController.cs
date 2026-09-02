@@ -61,6 +61,13 @@ namespace QuickControls
                     startupInitializationFailed = true;
                 }
             }
+            else if (!suppressStartup && _settings.StartWithWindows)
+            {
+                // Repair a missing entry and migrate older releases that started hidden.
+                // This keeps the saved preference authoritative after updates or an
+                // interrupted shutdown.
+                startupInitializationFailed = !StartupService.SetEnabled(true);
+            }
 
             _audioService = new AudioService();
             _brightnessService = new BrightnessService(false);

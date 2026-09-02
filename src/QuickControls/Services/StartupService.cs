@@ -25,12 +25,16 @@ namespace QuickControls.Services
                     if (enabled)
                     {
                         string executable = Assembly.GetExecutingAssembly().Location;
-                        key.SetValue(ValueName, "\"" + executable + "\" --background", RegistryValueKind.String);
+                        key.SetValue(ValueName, BuildStartupCommand(executable), RegistryValueKind.String);
                     }
                     else
                     {
                         key.DeleteValue(ValueName, false);
                     }
+
+                    // Persist the change before returning so a sudden loss of power cannot
+                    // leave the user's saved preference without a matching startup entry.
+                    key.Flush();
                 }
 
                 return true;
@@ -53,14 +57,31 @@ namespace QuickControls.Services
                         null,
                         RegistryValueOptions.DoNotExpandEnvironmentNames));
                     string executable = Assembly.GetExecutingAssembly().Location;
-                    string expected = "\"" + executable + "\" --background";
-                    return string.Equals(actual, expected, StringComparison.OrdinalIgnoreCase);
+                    return IsRegisteredCommand(actual, executable);
                 }
             }
             catch
             {
                 return false;
             }
+        }
+
+        private static string BuildStartupCommand(string executable)
+        {
+            return "\"" + executable + "\" --startup";
+        }
+
+        private static bool IsRegisteredCommand(string actual, string executable)
+        {
+            if (string.Equals(actual, BuildStartupCommand(executable), StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            // Treat the old hidden-start command as enabled while the application upgrades
+            // it. This preserves the user's preference across an in-place update.
+            string legacyCommand = "\"" + executable + "\" --background";
+            return string.Equals(actual, legacyCommand, StringComparison.OrdinalIgnoreCase);
         }
     }
 }

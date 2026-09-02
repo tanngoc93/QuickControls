@@ -67,7 +67,7 @@ Choose **Edge Dock** when you want the smallest always-available panel:
 
 **Automatic** uses the left or right edge nearest the saved panel position. The edge tab is a safe overlay and does not reserve Windows desktop work area, replace the taskbar, or change how windows maximize. A maximized window can extend behind it. Choose **Keep the panel above other windows** if the tab must remain visible, or hide the tab to the system tray when you do not need it.
 
-When Windows startup is enabled, a saved Edge Dock tab returns at sign-in without taking keyboard focus from the app you are using.
+When Windows startup is enabled, Quick Controls opens the saved panel layout at sign-in. A saved Edge Dock tab returns without taking keyboard focus from the app you are using.
 
 Press `Esc` while a panel opened from Edge Dock is active to return to the edge tab. When Edge Dock is already visible, the show-or-hide shortcut opens its Vertical Mini controls.
 

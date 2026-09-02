@@ -84,7 +84,7 @@ Catalog invariants, format placeholders, font choices, and the workflow for addi
 
 ## Local settings and startup
 
-`SettingsStore` serializes settings to `%LOCALAPPDATA%\QuickControls\settings.xml` with a temporary-file replacement flow. Stored preferences include the language, preferred panel layout, left/right dock choice, panel position, keyboard shortcuts, step size, startup behavior, and display selection. The settings version supports migration from the earlier expanded/compact preference. `StartupService` manages a per-user entry under `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`.
+`SettingsStore` serializes settings to `%LOCALAPPDATA%\QuickControls\settings.xml` with a temporary-file replacement flow. Stored preferences include the language, preferred panel layout, left/right dock choice, panel position, keyboard shortcuts, step size, startup behavior, and display selection. The settings version supports migration from the earlier expanded/compact preference. `StartupService` manages a per-user entry under `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`, flushes changes for power-loss resilience, opens the saved layout at sign-in, and repairs an enabled registration when the app starts.
 
 Settings, hardware commands, and temporary hardware-monitor samples are handled locally. The application source contains no network client or telemetry integration. Monitor samples stay in memory only for the lifetime of the open Hardware Monitor window.
 

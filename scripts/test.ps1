@@ -60,6 +60,17 @@ foreach ($entry in $minimumSizes.GetEnumerator()) {
 }
 
 $applicationAssembly = [System.Reflection.Assembly]::LoadFrom($appPath)
+$startupServiceType = $applicationAssembly.GetType('QuickControls.Services.StartupService', $true)
+$buildStartupCommandMethod = $startupServiceType.GetMethod(
+    'BuildStartupCommand',
+    [System.Reflection.BindingFlags]::NonPublic -bor [System.Reflection.BindingFlags]::Static)
+$startupCommandTestPath = 'C:\Program Files\Quick Controls\QuickControls.exe'
+$expectedStartupCommand = '"' + $startupCommandTestPath + '" --startup'
+$actualStartupCommand = $buildStartupCommandMethod.Invoke($null, @([string]$startupCommandTestPath))
+if ($actualStartupCommand -ne $expectedStartupCommand) {
+    throw "Startup command should open the saved panel layout: $actualStartupCommand"
+}
+
 $previewType = $applicationAssembly.GetType('QuickControls.UI.PreviewRenderer', $true)
 $previewMethod = $previewType.GetMethod(
     'Render',
@@ -123,6 +134,15 @@ $hardwareVisibilityLifecycleMethod = $previewType.GetMethod(
 $hardwareVisibilityLifecycleMethod.Invoke($null, @()) | Out-Null
 
 $installerAssembly = [System.Reflection.Assembly]::LoadFrom($setupPath)
+$installEngineType = $installerAssembly.GetType('QuickControls.Installer.InstallEngine', $true)
+$installerStartupCommandMethod = $installEngineType.GetMethod(
+    'BuildStartupCommand',
+    [System.Reflection.BindingFlags]::NonPublic -bor [System.Reflection.BindingFlags]::Static)
+$installerStartupCommand = $installerStartupCommandMethod.Invoke($null, @([string]$startupCommandTestPath))
+if ($installerStartupCommand -ne $expectedStartupCommand) {
+    throw "Installer startup command does not match the app: $installerStartupCommand"
+}
+
 $installerPreviewType = $installerAssembly.GetType(
     'QuickControls.Installer.InstallerPreviewRenderer',
     $true)

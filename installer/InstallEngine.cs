@@ -61,6 +61,7 @@ namespace QuickControls.Installer
             string configurationTemporaryPath = null;
             string uninstallerTemporaryPath = null;
             bool wasInstalled = IsInstalled;
+            bool startupWasEnabled = IsStartupEnabled;
             bool installDirectoryAlreadyExisted = Directory.Exists(InstallDirectory);
             bool installCompleted = false;
             InstallationTransaction transaction = null;
@@ -100,7 +101,7 @@ namespace QuickControls.Installer
                 CreateShortcuts();
 
                 Report(reportProgress, 85, "Finishing installation...");
-                if (!wasInstalled) RegisterStartup();
+                if (!wasInstalled || startupWasEnabled) RegisterStartup();
                 RegisterUninstaller();
 
                 transaction.Commit();
@@ -402,8 +403,14 @@ namespace QuickControls.Installer
                     throw new InvalidOperationException("Couldn't enable Start with Windows.");
                 }
 
-                key.SetValue(RegistryValueName, Quote(ApplicationPath) + " --background", RegistryValueKind.String);
+                key.SetValue(RegistryValueName, BuildStartupCommand(ApplicationPath), RegistryValueKind.String);
+                key.Flush();
             }
+        }
+
+        private static string BuildStartupCommand(string executablePath)
+        {
+            return Quote(executablePath) + " --startup";
         }
 
         private static void RegisterUninstaller()
